@@ -11,17 +11,25 @@ from flask import send_file
 from pdf import generar_pdf_plan
 import os
 
-app = Flask(__name__)
+app = Flask(_name_)
 CORS(app)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+database_url = os.environ.get("DATABASE_URL")
+
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace(
+        "postgres://",
+        "postgresql+psycopg://",
+        1
+    )
+
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
 
 with app.app_context():
     db.create_all()
-
 @app.route("/")
 def home():
     return {"status": "Nutri App OK"}
