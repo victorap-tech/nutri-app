@@ -16,7 +16,10 @@ CORS(app)
 
 database_url = os.environ.get("DATABASE_URL")
 
-if database_url and database_url.startswith("postgres://"):
+if not database_url:
+    raise RuntimeError("DATABASE_URL no está definida")
+
+if database_url.startswith("postgres://"):
     database_url = database_url.replace(
         "postgres://",
         "postgresql+psycopg://",
