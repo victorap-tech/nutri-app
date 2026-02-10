@@ -6,6 +6,8 @@ from peso import Peso
 from alimento import Alimento
 from plan import PlanAlimentario
 from plan_alimento import PlanAlimento
+from flask import send_file
+from pdf import generar_pdf_plan
 
 app = Flask(__name__)
 
@@ -162,5 +164,29 @@ def ver_plan_actual(paciente_id):
             for i in items
         ]
     }
+
+# ---------------- PDF ----------------
+
+@app.route("/pacientes/<int:paciente_id>/plan/pdf", methods=["GET"])
+def plan_pdf(paciente_id):
+    paciente = Paciente.query.get_or_404(paciente_id)
+
+    plan = PlanAlimentario.query.filter_by(
+        paciente_id=paciente_id
+    ).order_by(PlanAlimentario.fecha.desc()).first()
+
+    if not plan:
+        return {"error": "sin plan"}, 404
+
+    items = PlanAlimento.query.filter_by(plan_id=plan.id).all()
+
+    pdf = generar_pdf_plan(paciente, plan, items)
+
+    return send_file(
+        pdf,
+        mimetype="application/pdf",
+        download_name=f"plan_{paciente.nombre}.pdf",
+        as_attachment=True
+    )
 if __name__ == "__main__":
     app.run(debug=True)
