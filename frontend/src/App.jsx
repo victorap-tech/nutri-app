@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "./App.css";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -40,7 +41,7 @@ export default function App() {
         body: JSON.stringify(form)
       });
 
-      alert("Paciente cargado");
+      alert("Paciente cargado correctamente");
       setVista("pacientes");
       cargarPacientes();
     };
@@ -67,8 +68,9 @@ export default function App() {
         <input placeholder="Peso (kg)"
           onChange={e => setForm({ ...form, peso: e.target.value })} />
 
-        <br /><br />
-        <button onClick={guardar}>Guardar paciente</button>
+        <button className="primary" onClick={guardar}>
+          Guardar paciente
+        </button>
       </>
     );
   }
@@ -83,12 +85,16 @@ export default function App() {
       <>
         <h2>Pacientes</h2>
 
-        {pacientes.length === 0 && <p>No hay pacientes cargados</p>}
+        {pacientes.length === 0 && (
+          <p>No hay pacientes cargados.</p>
+        )}
 
         <ul>
           {pacientes.map(p => (
             <li key={p.id}>
-              {p.apellido}, {p.nombre} – DNI {p.dni} – {p.peso} kg
+              <strong>{p.apellido}, {p.nombre}</strong><br />
+              DNI: {p.dni}<br />
+              Edad: {p.edad} años · Altura: {p.altura} m · Peso: {p.peso} kg
             </li>
           ))}
         </ul>
@@ -98,20 +104,26 @@ export default function App() {
 
   // ---------- RENDER ----------
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="app-container">
       <h1>Nutri App</h1>
 
-      <button onClick={() => setVista("inicio")}>Inicio</button>
-      <button onClick={() => setVista("pacientes")}>Pacientes</button>
-      <button onClick={() => setVista("nuevo")}>Nuevo paciente</button>
+      <div className="nav-buttons">
+        <button onClick={() => setVista("inicio")}>Inicio</button>
+        <button onClick={() => setVista("pacientes")}>Pacientes</button>
+        <button onClick={() => setVista("nuevo")}>Nuevo paciente</button>
+      </div>
 
       <hr />
 
       {vista === "inicio" && (
         <>
           <h2>Inicio</h2>
-          <p>Estado backend:</p>
-          <b>{estadoBackend}</b>
+          <p>Estado del sistema:</p>
+          <span className={
+            estadoBackend === "Nutri App OK" ? "status-ok" : "status-off"
+          }>
+            {estadoBackend}
+          </span>
         </>
       )}
 
