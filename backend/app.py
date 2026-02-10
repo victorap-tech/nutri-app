@@ -11,7 +11,7 @@ from flask import send_file
 from pdf import generar_pdf_plan
 import os
 
-app = Flask(_name_)
+app = Flask(__name__)
 CORS(app)
 
 database_url = os.environ.get("DATABASE_URL")
