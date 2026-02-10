@@ -1,7 +1,5 @@
 from database import db
 
-from database import db
-
 class Paciente(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
