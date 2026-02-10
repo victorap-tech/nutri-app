@@ -154,6 +154,7 @@ def ver_plan_actual(paciente_id):
     items = PlanAlimento.query.filter_by(plan_id=plan.id).all()
 
     return {
+        "plan_id": plan.id,
         "fecha": plan.fecha.isoformat(),
         "alimentos": [
             {
