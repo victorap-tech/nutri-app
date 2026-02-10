@@ -3,6 +3,7 @@ from datetime import date
 from database import db
 from models import Paciente
 from peso import Peso
+from alimento import Alimento
 
 app = Flask(__name__)
 
@@ -71,6 +72,38 @@ def historial_peso(paciente_id):
             "peso": p.peso
         }
         for p in pesos
+    ])
+
+# ---------------- ALIMENTOS ----------------
+
+@app.route("/alimentos", methods=["POST"])
+def crear_alimento():
+    data = request.json
+
+    alimento = Alimento(
+        nombre=data["nombre"],
+        categoria=data["categoria"],
+        calorias=data.get("calorias")
+    )
+
+    db.session.add(alimento)
+    db.session.commit()
+
+    return {"id": alimento.id}, 201
+
+
+@app.route("/alimentos", methods=["GET"])
+def listar_alimentos():
+    alimentos = Alimento.query.filter_by(activo=True).all()
+
+    return jsonify([
+        {
+            "id": a.id,
+            "nombre": a.nombre,
+            "categoria": a.categoria,
+            "calorias": a.calorias
+        }
+        for a in alimentos
     ])
 
 if __name__ == "__main__":
