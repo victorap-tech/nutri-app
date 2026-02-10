@@ -4,6 +4,8 @@ from database import db
 from models import Paciente
 from peso import Peso
 from alimento import Alimento
+from plan import PlanAlimentario
+from plan_alimento import PlanAlimento
 
 app = Flask(__name__)
 
@@ -105,6 +107,60 @@ def listar_alimentos():
         }
         for a in alimentos
     ])
+# ---------------- PLANES ----------------
 
+@app.route("/pacientes/<int:paciente_id>/plan", methods=["POST"])
+def crear_plan(paciente_id):
+    data = request.json
+
+    plan = PlanAlimentario(
+        paciente_id=paciente_id,
+        fecha=data["fecha"]
+    )
+
+    db.session.add(plan)
+    db.session.commit()
+
+    return {"plan_id": plan.id}, 201
+
+
+@app.route("/planes/<int:plan_id>/alimentos", methods=["POST"])
+def agregar_alimento_plan(plan_id):
+    data = request.json
+
+    pa = PlanAlimento(
+        plan_id=plan_id,
+        alimento_id=data["alimento_id"],
+        comida=data["comida"]
+    )
+
+    db.session.add(pa)
+    db.session.commit()
+
+    return {"status": "alimento agregado"}, 201
+
+
+@app.route("/pacientes/<int:paciente_id>/plan", methods=["GET"])
+def ver_plan_actual(paciente_id):
+    plan = PlanAlimentario.query.filter_by(paciente_id=paciente_id).order_by(
+        PlanAlimentario.fecha.desc()
+    ).first()
+
+    if not plan:
+        return {"error": "sin plan"}, 404
+
+    items = PlanAlimento.query.filter_by(plan_id=plan.id).all()
+
+    return {
+        "fecha": plan.fecha.isoformat(),
+        "alimentos": [
+            {
+                "nombre": i.alimento.nombre,
+                "categoria": i.alimento.categoria,
+                "comida": i.comida
+            }
+            for i in items
+        ]
+    }
 if __name__ == "__main__":
     app.run(debug=True)
