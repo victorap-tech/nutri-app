@@ -1,4 +1,6 @@
-/* ---------- RESET BÁSICO ---------- */
+/* =========================
+   RESET GENERAL
+   ========================= */
 body {
   margin: 0;
   font-family: "Segoe UI", Roboto, Arial, sans-serif;
@@ -6,7 +8,9 @@ body {
   color: #333;
 }
 
-/* ---------- CONTENEDOR ---------- */
+/* =========================
+   CONTENEDOR PRINCIPAL
+   ========================= */
 .app-container {
   max-width: 900px;
   margin: 40px auto;
@@ -16,7 +20,9 @@ body {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
-/* ---------- TÍTULOS ---------- */
+/* =========================
+   TITULOS
+   ========================= */
 h1 {
   margin-top: 0;
   font-size: 28px;
@@ -29,7 +35,9 @@ h2 {
   color: #444;
 }
 
-/* ---------- BOTONERA ---------- */
+/* =========================
+   BOTONERA SUPERIOR
+   ========================= */
 .nav-buttons {
   margin-bottom: 20px;
 }
@@ -50,7 +58,9 @@ h2 {
   background-color: #c8e6c9;
 }
 
-/* ---------- FORMULARIOS ---------- */
+/* =========================
+   FORMULARIOS
+   ========================= */
 input {
   display: block;
   width: 100%;
@@ -67,7 +77,13 @@ input:focus {
   border-color: #66bb6a;
 }
 
-/* ---------- BOTÓN PRINCIPAL ---------- */
+/* =========================
+   BOTONES
+   ========================= */
+button {
+  font-family: inherit;
+}
+
 button.primary {
   background-color: #2e7d32;
   color: white;
@@ -82,7 +98,9 @@ button.primary:hover {
   background-color: #1b5e20;
 }
 
-/* ---------- LISTA PACIENTES ---------- */
+/* =========================
+   LISTA DE PACIENTES
+   ========================= */
 ul {
   list-style: none;
   padding: 0;
@@ -95,9 +113,32 @@ li {
   border-left: 5px solid #66bb6a;
   border-radius: 4px;
   font-size: 14px;
+  cursor: pointer;
 }
 
-/* ---------- ESTADO BACKEND ---------- */
+li:hover {
+  background-color: #f1f8f4;
+}
+
+/* =========================
+   FICHA DEL PACIENTE
+   ========================= */
+.ficha {
+  margin-top: 15px;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 6px;
+  border-left: 5px solid #2e7d32;
+}
+
+.ficha p {
+  margin: 6px 0;
+  font-size: 15px;
+}
+
+/* =========================
+   ESTADO BACKEND
+   ========================= */
 .status-ok {
   color: #2e7d32;
   font-weight: bold;
@@ -108,10 +149,30 @@ li {
   font-weight: bold;
 }
 
-/* ---------- SEPARADOR ---------- */
+/* =========================
+   SEPARADOR
+   ========================= */
 hr {
   border: none;
   height: 1px;
   background: #ddd;
   margin: 25px 0;
+}
+
+/* =========================
+   RESPONSIVE SIMPLE
+   ========================= */
+@media (max-width: 600px) {
+  .app-container {
+    margin: 20px;
+    padding: 20px;
+  }
+
+  input {
+    max-width: 100%;
+  }
+
+  .nav-buttons button {
+    margin-bottom: 10px;
+  }
 }
