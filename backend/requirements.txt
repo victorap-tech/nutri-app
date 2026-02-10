@@ -2,4 +2,4 @@ flask
 flask_sqlalchemy
 reportlab
 flask-cors
-psycopg[binary]
+psycopg2-binary
