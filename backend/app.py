@@ -73,6 +73,27 @@ def listar_pacientes():
         }
         for p in pacientes
     ])
+
+@app.route("/pacientes/buscar")
+def buscar_paciente():
+    q = request.args.get("q", "")
+    pacientes = Paciente.query.filter(
+        (Paciente.nombre.ilike(f"%{q}%")) |
+        (Paciente.apellido.ilike(f"%{q}%")) |
+        (Paciente.dni.ilike(f"%{q}%"))
+    ).all()
+
+    return jsonify([
+        {
+            "id": p.id,
+            "nombre": p.nombre,
+            "apellido": p.apellido,
+            "dni": p.dni,
+            "edad": p.edad,
+            "altura": p.altura,
+            "peso": p.peso
+        } for p in pacientes
+    ])
 # ---------------- PESO ----------------
 
 @app.route("/pacientes/<int:paciente_id>/peso", methods=["POST"])
