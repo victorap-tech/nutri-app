@@ -7,6 +7,7 @@ export default function App() {
   const [vista, setVista] = useState("inicio");
   const [estadoBackend, setEstadoBackend] = useState("");
   const [pacientes, setPacientes] = useState([]);
+  const [pacienteActivo, setPacienteActivo] = useState(null);
 
   // ---------- CHEQUEO BACKEND ----------
   useEffect(() => {
@@ -23,7 +24,7 @@ export default function App() {
       .then(data => setPacientes(data));
   };
 
-  // ---------- COMPONENTE NUEVO PACIENTE ----------
+  // ---------- NUEVO PACIENTE ----------
   function NuevoPaciente() {
     const [form, setForm] = useState({
       nombre: "",
@@ -75,7 +76,7 @@ export default function App() {
     );
   }
 
-  // ---------- COMPONENTE LISTA PACIENTES ----------
+  // ---------- LISTA PACIENTES ----------
   function ListaPacientes() {
     useEffect(() => {
       cargarPacientes();
@@ -85,19 +86,47 @@ export default function App() {
       <>
         <h2>Pacientes</h2>
 
-        {pacientes.length === 0 && (
-          <p>No hay pacientes cargados.</p>
-        )}
+        {pacientes.length === 0 && <p>No hay pacientes cargados.</p>}
 
         <ul>
           {pacientes.map(p => (
-            <li key={p.id}>
+            <li
+              key={p.id}
+              style={{ cursor: "pointer" }}
+              onClick={() => {
+                setPacienteActivo(p);
+                setVista("ficha");
+              }}
+            >
               <strong>{p.apellido}, {p.nombre}</strong><br />
-              DNI: {p.dni}<br />
-              Edad: {p.edad} años · Altura: {p.altura} m · Peso: {p.peso} kg
+              DNI: {p.dni}
             </li>
           ))}
         </ul>
+      </>
+    );
+  }
+
+  // ---------- FICHA PACIENTE ----------
+  function FichaPaciente() {
+    if (!pacienteActivo) return null;
+
+    return (
+      <>
+        <h2>Ficha del paciente</h2>
+
+        <div className="ficha">
+          <p><b>Apellido:</b> {pacienteActivo.apellido}</p>
+          <p><b>Nombre:</b> {pacienteActivo.nombre}</p>
+          <p><b>DNI:</b> {pacienteActivo.dni}</p>
+          <p><b>Edad:</b> {pacienteActivo.edad} años</p>
+          <p><b>Altura:</b> {pacienteActivo.altura} m</p>
+          <p><b>Peso actual:</b> {pacienteActivo.peso} kg</p>
+        </div>
+
+        <button onClick={() => setVista("pacientes")}>
+          ← Volver a pacientes
+        </button>
       </>
     );
   }
@@ -129,6 +158,7 @@ export default function App() {
 
       {vista === "pacientes" && <ListaPacientes />}
       {vista === "nuevo" && <NuevoPaciente />}
+      {vista === "ficha" && <FichaPaciente />}
     </div>
   );
 }
