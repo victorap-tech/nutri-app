@@ -48,6 +48,19 @@ def crear_paciente():
 
 @app.route("/pacientes", methods=["GET"])
 def listar_pacientes():
+    buscar = request.args.get("buscar")
+
+    query = Paciente.query
+
+    if buscar:
+        query = query.filter(
+            (Paciente.nombre.ilike(f"%{buscar}%")) |
+            (Paciente.apellido.ilike(f"%{buscar}%")) |
+            (Paciente.dni.ilike(f"%{buscar}%"))
+        )
+
+    pacientes = query.all()
+
     return jsonify([
         {
             "id": p.id,
@@ -58,9 +71,8 @@ def listar_pacientes():
             "altura": p.altura,
             "peso": p.peso
         }
-        for p in Paciente.query.all()
+        for p in pacientes
     ])
-
 # ---------------- PESO ----------------
 
 @app.route("/pacientes/<int:paciente_id>/peso", methods=["POST"])
