@@ -8,6 +8,7 @@ from plan import PlanAlimentario
 from plan_alimento import PlanAlimento
 from flask import send_file
 from pdf import generar_pdf_plan
+import os
 
 app = Flask(__name__)
 
@@ -227,5 +228,7 @@ def copiar_plan_anterior(paciente_id):
         "status": "plan copiado",
         "plan_id": nuevo_plan.id
     }, 201
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
