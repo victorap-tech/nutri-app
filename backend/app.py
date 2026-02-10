@@ -188,5 +188,43 @@ def plan_pdf(paciente_id):
         download_name=f"plan_{paciente.nombre}.pdf",
         as_attachment=True
     )
+
+# ---------------- COPIAR PLAN ----------------
+
+@app.route("/pacientes/<int:paciente_id>/plan/copiar", methods=["POST"])
+def copiar_plan_anterior(paciente_id):
+    data = request.json
+
+    plan_anterior = PlanAlimentario.query.filter_by(
+        paciente_id=paciente_id
+    ).order_by(PlanAlimentario.fecha.desc()).first()
+
+    if not plan_anterior:
+        return {"error": "no hay plan anterior"}, 404
+
+    nuevo_plan = PlanAlimentario(
+        paciente_id=paciente_id,
+        fecha=data["fecha"]
+    )
+
+    db.session.add(nuevo_plan)
+    db.session.commit()
+
+    items = PlanAlimento.query.filter_by(plan_id=plan_anterior.id).all()
+
+    for item in items:
+        copia = PlanAlimento(
+            plan_id=nuevo_plan.id,
+            alimento_id=item.alimento_id,
+            comida=item.comida
+        )
+        db.session.add(copia)
+
+    db.session.commit()
+
+    return {
+        "status": "plan copiado",
+        "plan_id": nuevo_plan.id
+    }, 201
 if __name__ == "__main__":
     app.run(debug=True)
