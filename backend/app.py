@@ -31,29 +31,34 @@ def home():
 @app.route("/pacientes", methods=["POST"])
 def crear_paciente():
     data = request.json
+
     paciente = Paciente(
-      nombre=data.get("nombre"),
-      apellido=data.get("apellido"),
-      edad=data.get("edad"),
-      altura=data.get("altura"),
-      peso=data.get("peso")
+        nombre=data.get("nombre"),
+        apellido=data.get("apellido"),
+        dni=data.get("dni"),
+        edad=data.get("edad"),
+        altura=data.get("altura"),
+        peso=data.get("peso")
     )
-      db.session.add(paciente)
-      db.session.commit()
-      return jsonify({"id": paciente.id}), 201
+
+    db.session.add(paciente)
+    db.session.commit()
+
+    return jsonify({"id": paciente.id}), 201
 
 @app.route("/pacientes", methods=["GET"])
 def listar_pacientes():
     return jsonify([
-      {
-        "id": p.id,
-        "nombre": p.nombre,
-        "apellido": p.apellido,
-        "edad": p.edad,
-        "altura": p.altura,
-        "peso": p.peso
-      }
-      for p in Paciente.query.all()
+        {
+            "id": p.id,
+            "nombre": p.nombre,
+            "apellido": p.apellido,
+            "dni": p.dni,
+            "edad": p.edad,
+            "altura": p.altura,
+            "peso": p.peso
+        }
+        for p in Paciente.query.all()
     ])
 
 # ---------------- PESO ----------------
