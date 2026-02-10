@@ -1,39 +1,63 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function App() {
-  const [screen, setScreen] = useState("home");
+  const [status, setStatus] = useState("Conectando...");
+  const [pantalla, setPantalla] = useState("inicio");
+  const [pacientes, setPacientes] = useState([]);
+
+  useEffect(() => {
+    fetch(import.meta.env.VITE_API_URL)
+      .then(res => res.json())
+      .then(data => setStatus(data.status))
+      .catch(() => setStatus("Error de conexión"));
+  }, []);
+
+  useEffect(() => {
+    if (pantalla === "pacientes") {
+      fetch(import.meta.env.VITE_API_URL + "/pacientes")
+        .then(res => res.json())
+        .then(data => setPacientes(data));
+    }
+  }, [pantalla]);
 
   return (
-    <div style={{ padding: "2rem", fontFamily: "Arial" }}>
+    <div style={{ padding: 30, fontFamily: "Arial" }}>
       <h1>Nutri App</h1>
 
       {/* MENU */}
-      <div style={{ marginBottom: "1rem" }}>
-        <button onClick={() => setScreen("home")}>Inicio</button>{" "}
-        <button onClick={() => setScreen("pacientes")}>Pacientes</button>
+      <div style={{ marginBottom: 20 }}>
+        <button onClick={() => setPantalla("inicio")}>Inicio</button>
+        <button onClick={() => setPantalla("pacientes")} style={{ marginLeft: 10 }}>
+          Pacientes
+        </button>
       </div>
 
       {/* PANTALLAS */}
-      {screen === "home" && <Home />}
-      {screen === "pacientes" && <Pacientes />}
-    </div>
-  );
-}
+      {pantalla === "inicio" && (
+        <>
+          <h2>Inicio</h2>
+          <p>Estado backend:</p>
+          <strong>{status}</strong>
+        </>
+      )}
 
-function Home() {
-  return (
-    <div>
-      <h2>Inicio</h2>
-      <p>Backend conectado correctamente.</p>
-    </div>
-  );
-}
+      {pantalla === "pacientes" && (
+        <>
+          <h2>Pacientes</h2>
 
-function Pacientes() {
-  return (
-    <div>
-      <h2>Pacientes</h2>
-      <p>Acá vamos a listar pacientes.</p>
+          {pacientes.length === 0 ? (
+            <p>No hay pacientes cargados.</p>
+          ) : (
+            <ul>
+              {pacientes.map(p => (
+                <li key={p.id}>
+                  {p.nombre} – {p.edad} años
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
     </div>
   );
 }
