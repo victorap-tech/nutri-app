@@ -32,24 +32,28 @@ def home():
 def crear_paciente():
     data = request.json
     paciente = Paciente(
-        nombre=data["nombre"],
-        edad=data.get("edad"),
-        altura=data.get("altura")
+      nombre=data.get("nombre"),
+      apellido=data.get("apellido"),
+      edad=data.get("edad"),
+      altura=data.get("altura"),
+      peso=data.get("peso")
     )
-    db.session.add(paciente)
-    db.session.commit()
-    return jsonify({"id": paciente.id}), 201
+      db.session.add(paciente)
+      db.session.commit()
+      return jsonify({"id": paciente.id}), 201
 
 @app.route("/pacientes", methods=["GET"])
 def listar_pacientes():
     return jsonify([
-        {
-            "id": p.id,
-            "nombre": p.nombre,
-            "edad": p.edad,
-            "altura": p.altura
-        }
-        for p in Paciente.query.all()
+      {
+        "id": p.id,
+        "nombre": p.nombre,
+        "apellido": p.apellido,
+        "edad": p.edad,
+        "altura": p.altura,
+        "peso": p.peso
+      }
+      for p in Paciente.query.all()
     ])
 
 # ---------------- PESO ----------------
