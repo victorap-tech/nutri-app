@@ -82,9 +82,6 @@ def listar_pacientes():
         "edad": p.edad,
         "altura": p.altura,
         "peso": p.peso,
-        "cintura": p.cintura,
-        "fecha_visita": p.fecha_visita.isoformat() if p.fecha_visita else None,
-        "diagnostico": p.diagnostico
       }
       for p in pacientes
     ])
