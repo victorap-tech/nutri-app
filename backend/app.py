@@ -34,6 +34,42 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
+
+# ---------------- UTILIDADES ----------------
+
+def to_float(valor):
+    if valor is None or valor == "":
+        return None
+    if isinstance(valor, str):
+        valor = valor.replace(",", ".")
+    try:
+        return float(valor)
+    except:
+        return None
+
+
+def calcular_imc(peso, altura):
+    if not peso or not altura:
+        return None, None
+
+    try:
+        imc = peso / (altura * altura)
+    except:
+        return None, None
+
+    imc = round(imc, 2)
+
+    if imc < 18.5:
+        rango = "Bajo peso"
+    elif imc < 25:
+        rango = "Normal"
+    elif imc < 30:
+        rango = "Sobrepeso"
+    else:
+        rango = "Obesidad"
+
+    return imc, rango
+    
 @app.route("/")
 def home():
     return {"status": "Nutri App OK"}
