@@ -1,5 +1,6 @@
 from database import db
 
+
 class Paciente(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -11,4 +12,6 @@ class Paciente(db.Model):
     altura = db.Column(db.Float)
     peso = db.Column(db.Float)
 
-    diagnostico = db.Column(db.Text)   # 👈 NUEVO
+    cintura = db.Column(db.Float)              # NUEVO
+    fecha_visita = db.Column(db.Date)          # NUEVO
+    diagnostico = db.Column(db.Text)           # YA AGREGADO
