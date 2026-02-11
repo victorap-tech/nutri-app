@@ -10,3 +10,5 @@ class Paciente(db.Model):
     edad = db.Column(db.Integer)
     altura = db.Column(db.Float)
     peso = db.Column(db.Float)
+
+    diagnostico = db.Column(db.Text)   # 👈 NUEVO
