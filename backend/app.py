@@ -142,6 +142,23 @@ def crear_visita(paciente_id):
     db.session.commit()
 
     return {"status": "visita creada"}, 201
+
+@app.route("/pacientes/<int:paciente_id>/visitas", methods=["GET"])
+def listar_visitas(paciente_id):
+    visitas = Visita.query.filter_by(paciente_id=paciente_id)\
+        .order_by(Visita.fecha.desc()).all()
+
+    return jsonify([
+        {
+            "id": v.id,
+            "fecha": v.fecha.isoformat(),
+            "peso": v.peso,
+            "altura": v.altura,
+            "cintura": v.cintura,
+            "diagnostico": v.diagnostico
+        }
+        for v in visitas
+    ])
 # ---------------- PESO ----------------
 
 @app.route("/pacientes/<int:paciente_id>/peso", methods=["POST"])
