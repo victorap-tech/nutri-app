@@ -1,4 +1,13 @@
 import { useEffect, useState } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from "recharts";
 import "./App.css";
 
 const API = "https://nutri-app-production-175c.up.railway.app";
@@ -53,41 +62,12 @@ function App() {
     return (peso / (altura * altura)).toFixed(2);
   };
 
-  const obtenerRangoIMC = (imc) => {
-    if (!imc) return "";
-    if (imc < 18.5) return "Bajo peso";
-    if (imc < 25) return "Normal";
-    if (imc < 30) return "Sobrepeso";
-    return "Obesidad";
-  };
-
   const obtenerColorIMC = (imc) => {
     if (!imc) return "#ccc";
     if (imc < 18.5) return "#3b82f6";
     if (imc < 25) return "#16a34a";
     if (imc < 30) return "#f59e0b";
     return "#dc2626";
-  };
-
-  const guardarPaciente = async () => {
-    await fetch(`${API}/pacientes`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formPaciente)
-    });
-
-    setMostrarNuevo(false);
-    setFormPaciente({
-      nombre: "",
-      apellido: "",
-      dni: "",
-      edad: "",
-      altura: "",
-      peso: "",
-      cintura: ""
-    });
-
-    fetchPacientes();
   };
 
   const guardarVisita = async () => {
@@ -108,43 +88,10 @@ function App() {
     fetchVisitas(pacienteSeleccionado.id);
   };
 
-  if (mostrarNuevo) {
-    return (
-      <div className="container">
-        <div className="card-form">
-          <h2>Nuevo paciente</h2>
-          {Object.keys(formPaciente).map((campo) => (
-            <input
-              key={campo}
-              placeholder={campo}
-              value={formPaciente[campo]}
-              onChange={(e) =>
-                setFormPaciente({
-                  ...formPaciente,
-                  [campo]: e.target.value
-                })
-              }
-            />
-          ))}
-          <button className="btn-primary" onClick={guardarPaciente}>
-            Guardar paciente
-          </button>
-          <button className="btn-secondary" onClick={() => setMostrarNuevo(false)}>
-            Cancelar
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   if (!pacienteSeleccionado) {
     return (
       <div className="container">
-        <h1>Nutri App</h1>
-        <button className="btn-primary" onClick={() => setMostrarNuevo(true)}>
-          + Nuevo paciente
-        </button>
-
+        <h1>Nutri App PRO</h1>
         <div className="lista">
           {pacientes.map((p) => (
             <div
@@ -160,17 +107,17 @@ function App() {
     );
   }
 
-  const ultimaVisita = visitas[0];
-  const imc = calcularIMC(
-    ultimaVisita?.peso,
-    ultimaVisita?.altura || pacienteSeleccionado.altura
-  );
+  const visitasConIMC = visitas.map((v) => ({
+    ...v,
+    imc: calcularIMC(v.peso, v.altura || pacienteSeleccionado.altura)
+  }));
 
-  const colorIMC = obtenerColorIMC(imc);
+  const ultimaVisita = visitasConIMC[0];
+  const colorIMC = obtenerColorIMC(ultimaVisita?.imc);
 
   return (
     <div className="container">
-      <h1>Nutri App</h1>
+      <h1>Ficha del paciente</h1>
 
       <div className="grid">
         {/* FICHA */}
@@ -181,49 +128,59 @@ function App() {
 
           <p><strong>DNI:</strong> {pacienteSeleccionado.dni}</p>
           <p><strong>Edad:</strong> {pacienteSeleccionado.edad}</p>
-          <p><strong>Altura:</strong> {pacienteSeleccionado.altura} m</p>
-          <p><strong>Peso actual:</strong> {ultimaVisita?.peso || pacienteSeleccionado.peso} kg</p>
-          <p><strong>Cintura actual:</strong> {ultimaVisita?.cintura || "-"} cm</p>
 
-          {imc && (
+          {ultimaVisita && (
             <>
-              <p><strong>IMC:</strong> {imc}</p>
+              <p><strong>Peso actual:</strong> {ultimaVisita.peso} kg</p>
+              <p><strong>Cintura:</strong> {ultimaVisita.cintura || "-"} cm</p>
+              <p><strong>IMC:</strong> {ultimaVisita.imc}</p>
 
               <div className="barra-imc">
                 <div
                   className="barra-progreso"
                   style={{
-                    width: `${Math.min((imc / 40) * 100, 100)}%`,
+                    width: `${Math.min((ultimaVisita.imc / 40) * 100, 100)}%`,
                     backgroundColor: colorIMC
                   }}
                 />
               </div>
-
-              <p style={{ color: colorIMC }}>
-                {obtenerRangoIMC(imc)}
-              </p>
             </>
           )}
-
-          <button className="btn-secondary" onClick={() => setPacienteSeleccionado(null)}>
-            ← Volver
-          </button>
         </div>
 
-        {/* HISTORIAL */}
+        {/* HISTORIAL + GRAFICOS */}
         <div className="card historial">
-          <h2>Historial de visitas</h2>
+          <h2>Evolución</h2>
 
-          <div className="lista-visitas">
-            {visitas.map((v) => (
-              <div key={v.id} className="card-visita">
-                <h4>{v.fecha}</h4>
-                <p>Peso: {v.peso} kg</p>
-                <p>Cintura: {v.cintura || "-"} cm</p>
-                <p>{v.diagnostico}</p>
-              </div>
-            ))}
-          </div>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={visitasConIMC.reverse()}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="fecha" />
+              <YAxis />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="peso"
+                stroke="#2563eb"
+                strokeWidth={3}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={visitasConIMC}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="fecha" />
+              <YAxis />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="imc"
+                stroke="#dc2626"
+                strokeWidth={3}
+              />
+            </LineChart>
+          </ResponsiveContainer>
 
           <div className="nueva-visita">
             <h3>Nueva visita</h3>
