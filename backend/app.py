@@ -9,6 +9,7 @@ from plan import PlanAlimentario
 from plan_alimento import PlanAlimento
 from flask import send_file
 from pdf import generar_pdf_plan
+from visita import Visita
 import os
 
 app = Flask(__name__)
@@ -123,6 +124,24 @@ def buscar_paciente():
             "peso": p.peso
         } for p in pacientes
     ])
+
+@app.route("/pacientes/<int:paciente_id>/visitas", methods=["POST"])
+def crear_visita(paciente_id):
+    data = request.json
+
+    visita = Visita(
+        paciente_id=paciente_id,
+        fecha=date.fromisoformat(data["fecha"]),
+        peso=data["peso"],
+        altura=data.get("altura"),
+        cintura=data.get("cintura"),
+        diagnostico=data.get("diagnostico")
+    )
+
+    db.session.add(visita)
+    db.session.commit()
+
+    return {"status": "visita creada"}, 201
 # ---------------- PESO ----------------
 
 @app.route("/pacientes/<int:paciente_id>/peso", methods=["POST"])
