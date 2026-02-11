@@ -72,18 +72,21 @@ def listar_pacientes():
 
     pacientes = query.all()
 
-    return jsonify([
-        {
-            "id": p.id,
-            "nombre": p.nombre,
-            "apellido": p.apellido,
-            "dni": p.dni,
-            "edad": p.edad,
-            "altura": p.altura,
-            "peso": p.peso
-        }
-        for p in pacientes
-    ])
+   return jsonify([
+    {
+        "id": p.id,
+        "nombre": p.nombre,
+        "apellido": p.apellido,
+        "dni": p.dni,
+        "edad": p.edad,
+        "altura": p.altura,
+        "peso": p.peso,
+        "cintura": p.cintura,
+        "fecha_visita": p.fecha_visita.isoformat() if p.fecha_visita else None,
+        "diagnostico": p.diagnostico
+    }
+    for p in pacientes
+])
 
 @app.route("/pacientes/<int:paciente_id>", methods=["PUT"])
 def actualizar_paciente(paciente_id):
