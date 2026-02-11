@@ -128,8 +128,12 @@ def actualizar_paciente(paciente_id):
     paciente.edad = data.get("edad")
     paciente.altura = data.get("altura")
     paciente.peso = data.get("peso")
+    paciente.cintura = data.get("cintura")
+    paciente.fecha_visita = date.fromisoformat(data["fecha_visita"]) if data.get("fecha_visita") else None
+    paciente.diagnostico = data.get("diagnostico")
 
     db.session.commit()
+
     return {"status": "paciente actualizado"}
 
 @app.route("/pacientes/buscar")
