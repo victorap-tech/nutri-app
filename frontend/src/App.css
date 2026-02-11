@@ -1,157 +1,257 @@
-/* ---------------- GENERAL ---------------- */
+/* =========================
+   BASE
+========================= */
 
-body {
-  margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: #f2f4f7;
+:root{
+  --bg:#f3f6fb;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:#e2e8f0;
+  --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --primary:#2563eb;
+  --primary-2:#1d4ed8;
+  --danger:#ef4444;
+  --ok:#16a34a;
 }
 
-.app {
-  max-width: 1100px;
-  margin: auto;
-  padding: 20px;
+*{ box-sizing: border-box; }
+
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  background: var(--bg);
+  color: var(--text);
 }
 
-h1 {
-  margin-bottom: 20px;
+.app-container{
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 22px 16px 48px;
 }
 
-/* ---------------- TARJETAS ---------------- */
-
-.card {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+h1{
+  margin: 6px 0 16px;
+  font-size: 28px;
+  letter-spacing: -0.5px;
 }
 
-/* ---------------- BOTONES ---------------- */
+h2{
+  margin: 10px 0 16px;
+  font-size: 20px;
+  letter-spacing: -0.2px;
+}
 
-button {
-  padding: 10px 14px;
-  border-radius: 6px;
-  border: none;
+h3{
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: var(--text);
+}
+
+p{ color: var(--muted); }
+
+/* =========================
+   CARD
+========================= */
+
+.card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+button{
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 10px;
   cursor: pointer;
-  margin-top: 10px;
+  transition: transform .04s ease, background .2s ease, border-color .2s ease;
+  font-weight: 600;
 }
 
-button.primary {
-  background: #2e7d32;
+button:hover{
+  background: #f8fafc;
+}
+
+button:active{
+  transform: translateY(1px);
+}
+
+button.primary{
+  background: var(--primary);
+  border-color: var(--primary);
   color: white;
 }
 
-button.primary:hover {
-  background: #256628;
+button.primary:hover{
+  background: var(--primary-2);
+  border-color: var(--primary-2);
 }
 
-/* ---------------- LISTA PACIENTES ---------------- */
+/* =========================
+   INPUTS (FORM VERTICAL)
+========================= */
 
-.header-flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.paciente-item {
-  padding: 12px;
-  border-bottom: 1px solid #ddd;
-  cursor: pointer;
-}
-
-.paciente-item:hover {
-  background: #f0f0f0;
-}
-
-/* ---------------- FORMULARIOS (CLAVE) ---------------- */
-
-/* 🔴 ESTO ES LO IMPORTANTE */
-.card label {
-  display: block;
-  margin-top: 12px;
-  font-weight: bold;
-}
-
-.card input,
-.card textarea {
+input, textarea{
   width: 100%;
   display: block;
   margin-top: 6px;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  outline: none;
+  font-size: 14px;
 }
 
-/* textarea diagnóstico */
-textarea.diagnostico {
-  min-height: 120px;
+input:focus, textarea:focus{
+  border-color: rgba(37,99,235,.55);
+  box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+}
+
+textarea{
   resize: vertical;
+  min-height: 110px;
 }
 
-/* ---------------- FICHA ---------------- */
+/* Nuevo paciente: inputs separados con espacio */
+.app-container input + input{
+  margin-top: 10px;
+}
 
-.ficha-layout {
+/* =========================
+   LISTA PACIENTES (VERTICAL)
+========================= */
+
+.lista-pacientes{
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+}
+
+.lista-pacientes li{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(15,23,42,.06);
+  transition: background .15s ease, border-color .15s ease, transform .05s ease;
+}
+
+.lista-pacientes li:hover{
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.lista-pacientes li:active{
+  transform: translateY(1px);
+}
+
+/* =========================
+   FICHA GRID
+========================= */
+
+.ficha-grid{
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 20px;
+  grid-template-columns: 1.1fr 1.3fr 0.8fr;
+  gap: 16px;
+  margin-top: 14px;
 }
 
-.ficha input,
-.ficha textarea {
-  background: #fafafa;
+/* En la ficha, que los inputs se vean “de consultorio” */
+.ficha-grid .card input,
+.ficha-grid .card textarea{
+  background: #fbfdff;
 }
 
-/* ---------------- IMC ---------------- */
+/* =========================
+   IMC CARD
+========================= */
 
-.imc {
+.imc{
   text-align: center;
 }
 
-.imc-num {
-  font-size: 48px;
-  font-weight: bold;
-  margin: 10px 0;
+.imc-numero{
+  font-size: 44px;
+  font-weight: 800;
+  margin-top: 8px;
+  letter-spacing: -1px;
 }
 
-.imc-rango {
-  font-size: 18px;
+.imc-rango{
+  margin-top: 6px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* =========================
+   TABLE (HISTORIAL)
+========================= */
+
+table{
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+thead{
+  background: #f8fafc;
+}
+
+th, td{
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 14px;
+}
+
+th{
+  color: var(--muted);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: .6px;
+}
+
+tbody tr:hover{
+  background: #fbfdff;
+}
+
+/* =========================
+   SMALL IMPROVEMENTS
+========================= */
+
+.app-container > button{
   margin-bottom: 10px;
 }
 
-.imc-bar {
-  position: relative;
-  height: 12px;
-  border-radius: 6px;
-  background: linear-gradient(
-    to right,
-    #64b5f6 0%,
-    #81c784 25%,
-    #fff176 50%,
-    #ffb74d 75%,
-    #e57373 100%
-  );
-  margin: 15px 0;
+/* textarea diagnóstico dentro de Nueva visita */
+.card textarea{
+  margin-top: 10px;
 }
 
-.imc-marker {
-  position: absolute;
-  top: -6px;
-  width: 4px;
-  height: 24px;
-  background: black;
-}
+/* =========================
+   RESPONSIVE
+========================= */
 
-/* posiciones aproximadas */
-.imc-bajopeso { left: 10%; }
-.imc-normal { left: 35%; }
-.imc-sobrepeso { left: 60%; }
-.imc-obesidad { left: 85%; }
-
-/* ---------------- RESPONSIVE ---------------- */
-
-@media (max-width: 900px) {
-  .ficha-layout {
+@media (max-width: 980px){
+  .ficha-grid{
     grid-template-columns: 1fr;
   }
 }
