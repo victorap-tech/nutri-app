@@ -1,7 +1,9 @@
+/* ---------------- GENERAL ---------------- */
+
 body {
-  font-family: Arial, sans-serif;
-  background: #f2f4f7;
   margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f2f4f7;
 }
 
 .app {
@@ -14,22 +16,80 @@ h1 {
   margin-bottom: 20px;
 }
 
+/* ---------------- TARJETAS ---------------- */
+
 .card {
   background: white;
-  padding: 20px;
   border-radius: 8px;
+  padding: 20px;
   margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* ---------------- BOTONES ---------------- */
+
+button {
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+button.primary {
+  background: #2e7d32;
+  color: white;
+}
+
+button.primary:hover {
+  background: #256628;
+}
+
+/* ---------------- LISTA PACIENTES ---------------- */
+
+.header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .paciente-item {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
   cursor: pointer;
 }
 
 .paciente-item:hover {
-  background: #f5f5f5;
+  background: #f0f0f0;
 }
+
+/* ---------------- FORMULARIOS (CLAVE) ---------------- */
+
+/* 🔴 ESTO ES LO IMPORTANTE */
+.card label {
+  display: block;
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+.card input,
+.card textarea {
+  width: 100%;
+  display: block;
+  margin-top: 6px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+/* textarea diagnóstico */
+textarea.diagnostico {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* ---------------- FICHA ---------------- */
 
 .ficha-layout {
   display: grid;
@@ -37,72 +97,61 @@ h1 {
   gap: 20px;
 }
 
-.ficha label {
-  margin-top: 10px;
-  font-weight: bold;
-}
-
 .ficha input,
 .ficha textarea {
-  width: 100%;
-  padding: 6px;
-  margin-top: 4px;
+  background: #fafafa;
 }
 
-.diagnostico {
-  min-height: 100px;
-}
-
-.primary {
-  margin-top: 15px;
-  padding: 10px;
-  background: #2e7d32;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-.primary:hover {
-  background: #1b5e20;
-}
+/* ---------------- IMC ---------------- */
 
 .imc {
   text-align: center;
 }
 
 .imc-num {
-  font-size: 40px;
+  font-size: 48px;
   font-weight: bold;
+  margin: 10px 0;
 }
 
 .imc-rango {
+  font-size: 18px;
   margin-bottom: 10px;
-  font-weight: bold;
 }
 
 .imc-bar {
   position: relative;
-  height: 20px;
+  height: 12px;
+  border-radius: 6px;
   background: linear-gradient(
     to right,
-    #42a5f5,
-    #66bb6a,
-    #ffa726,
-    #ef5350
+    #64b5f6 0%,
+    #81c784 25%,
+    #fff176 50%,
+    #ffb74d 75%,
+    #e57373 100%
   );
-  border-radius: 10px;
-  margin: 10px 0;
+  margin: 15px 0;
 }
 
 .imc-marker {
   position: absolute;
-  top: -5px;
+  top: -6px;
   width: 4px;
-  height: 30px;
+  height: 24px;
   background: black;
 }
 
+/* posiciones aproximadas */
 .imc-bajopeso { left: 10%; }
 .imc-normal { left: 35%; }
-.imc-sobrepeso { left: 65%; }
-.imc-obesidad { left: 90%; }
+.imc-sobrepeso { left: 60%; }
+.imc-obesidad { left: 85%; }
+
+/* ---------------- RESPONSIVE ---------------- */
+
+@media (max-width: 900px) {
+  .ficha-layout {
+    grid-template-columns: 1fr;
+  }
+}
