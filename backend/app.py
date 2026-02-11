@@ -85,6 +85,21 @@ def listar_pacientes():
         for p in pacientes
     ])
 
+@app.route("/pacientes/<int:paciente_id>", methods=["PUT"])
+def actualizar_paciente(paciente_id):
+    data = request.json
+    paciente = Paciente.query.get_or_404(paciente_id)
+
+    paciente.nombre = data.get("nombre")
+    paciente.apellido = data.get("apellido")
+    paciente.dni = data.get("dni")
+    paciente.edad = data.get("edad")
+    paciente.altura = data.get("altura")
+    paciente.peso = data.get("peso")
+
+    db.session.commit()
+    return {"status": "paciente actualizado"}
+
 @app.route("/pacientes/buscar")
 def buscar_paciente():
     q = request.args.get("q", "")
