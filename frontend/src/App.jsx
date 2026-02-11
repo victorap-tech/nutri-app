@@ -9,7 +9,7 @@ export default function App() {
   const [pacientes, setPacientes] = useState([]);
   const [pacienteActivo, setPacienteActivo] = useState(null);
 
-  // ---------- CHEQUEO BACKEND ----------
+  // ---------- BACKEND STATUS ----------
   useEffect(() => {
     fetch(API)
       .then(res => res.json())
@@ -25,7 +25,7 @@ export default function App() {
       .catch(() => setPacientes([]));
   };
 
-  // 🔥 CLAVE: recargar pacientes cada vez que entrás a la vista
+  // recargar al entrar a la vista
   useEffect(() => {
     if (vista === "pacientes") {
       cargarPacientes();
@@ -63,53 +63,19 @@ export default function App() {
       <>
         <h2>Nuevo paciente</h2>
 
-        <input
-          placeholder="Nombre"
-          value={form.nombre}
-          onChange={e => setForm({ ...form, nombre: e.target.value })}
-        />
+        <input placeholder="Nombre" onChange={e => setForm({ ...form, nombre: e.target.value })} />
+        <input placeholder="Apellido" onChange={e => setForm({ ...form, apellido: e.target.value })} />
+        <input placeholder="DNI" onChange={e => setForm({ ...form, dni: e.target.value })} />
+        <input type="number" placeholder="Edad" onChange={e => setForm({ ...form, edad: e.target.value })} />
+        <input type="number" placeholder="Altura (cm)" onChange={e => setForm({ ...form, altura: e.target.value })} />
+        <input type="number" placeholder="Peso (kg)" onChange={e => setForm({ ...form, peso: e.target.value })} />
 
-        <input
-          placeholder="Apellido"
-          value={form.apellido}
-          onChange={e => setForm({ ...form, apellido: e.target.value })}
-        />
-
-        <input
-          placeholder="DNI"
-          value={form.dni}
-          onChange={e => setForm({ ...form, dni: e.target.value })}
-        />
-
-        <input
-          placeholder="Edad"
-          type="number"
-          value={form.edad}
-          onChange={e => setForm({ ...form, edad: e.target.value })}
-        />
-
-        <input
-          placeholder="Altura (cm)"
-          type="number"
-          value={form.altura}
-          onChange={e => setForm({ ...form, altura: e.target.value })}
-        />
-
-        <input
-          placeholder="Peso (kg)"
-          type="number"
-          value={form.peso}
-          onChange={e => setForm({ ...form, peso: e.target.value })}
-        />
-
-        <button className="primary" onClick={guardar}>
-          Guardar paciente
-        </button>
+        <button className="primary" onClick={guardar}>Guardar paciente</button>
       </>
     );
   }
 
-  // ---------- LISTA PACIENTES ----------
+  // ---------- LISTA ----------
   function ListaPacientes() {
     return (
       <>
@@ -119,13 +85,10 @@ export default function App() {
 
         <ul className="lista-pacientes">
           {pacientes.map(p => (
-            <li
-              key={p.id}
-              onClick={() => {
-                setPacienteActivo(p);
-                setVista("ficha");
-              }}
-            >
+            <li key={p.id} onClick={() => {
+              setPacienteActivo(p);
+              setVista("ficha");
+            }}>
               <strong>{p.apellido}, {p.nombre}</strong><br />
               DNI: {p.dni}
             </li>
@@ -135,7 +98,7 @@ export default function App() {
     );
   }
 
-  // ---------- FICHA PACIENTE ----------
+  // ---------- FICHA ----------
   function FichaPaciente() {
     if (!pacienteActivo) return null;
 
@@ -147,14 +110,12 @@ export default function App() {
           <p><b>Apellido:</b> {pacienteActivo.apellido}</p>
           <p><b>Nombre:</b> {pacienteActivo.nombre}</p>
           <p><b>DNI:</b> {pacienteActivo.dni}</p>
-          <p><b>Edad:</b> {pacienteActivo.edad} años</p>
+          <p><b>Edad:</b> {pacienteActivo.edad}</p>
           <p><b>Altura:</b> {pacienteActivo.altura} cm</p>
-          <p><b>Peso actual:</b> {pacienteActivo.peso} kg</p>
+          <p><b>Peso:</b> {pacienteActivo.peso} kg</p>
         </div>
 
-        <button onClick={() => setVista("pacientes")}>
-          ← Volver a pacientes
-        </button>
+        <button onClick={() => setVista("pacientes")}>← Volver</button>
       </>
     );
   }
@@ -174,15 +135,8 @@ export default function App() {
 
       {vista === "inicio" && (
         <>
-          <h2>Inicio</h2>
           <p>Estado del sistema:</p>
-          <span
-            className={
-              estadoBackend === "Nutri App OK"
-                ? "status-ok"
-                : "status-off"
-            }
-          >
+          <span className={estadoBackend === "Nutri App OK" ? "status-ok" : "status-off"}>
             {estadoBackend}
           </span>
         </>
