@@ -21,8 +21,16 @@ export default function App() {
   const cargarPacientes = () => {
     fetch(`${API}/pacientes`)
       .then(res => res.json())
-      .then(data => setPacientes(data));
+      .then(data => setPacientes(data))
+      .catch(() => setPacientes([]));
   };
+
+  // 🔥 CLAVE: recargar pacientes cada vez que entrás a la vista
+  useEffect(() => {
+    if (vista === "pacientes") {
+      cargarPacientes();
+    }
+  }, [vista]);
 
   // ---------- NUEVO PACIENTE ----------
   function NuevoPaciente() {
@@ -39,35 +47,60 @@ export default function App() {
       await fetch(`${API}/pacientes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
+        body: JSON.stringify({
+          ...form,
+          edad: Number(form.edad),
+          altura: Number(form.altura),
+          peso: Number(form.peso)
+        })
       });
 
       alert("Paciente cargado correctamente");
       setVista("pacientes");
-      cargarPacientes();
     };
 
     return (
       <>
         <h2>Nuevo paciente</h2>
 
-        <input placeholder="Nombre"
-          onChange={e => setForm({ ...form, nombre: e.target.value })} />
+        <input
+          placeholder="Nombre"
+          value={form.nombre}
+          onChange={e => setForm({ ...form, nombre: e.target.value })}
+        />
 
-        <input placeholder="Apellido"
-          onChange={e => setForm({ ...form, apellido: e.target.value })} />
+        <input
+          placeholder="Apellido"
+          value={form.apellido}
+          onChange={e => setForm({ ...form, apellido: e.target.value })}
+        />
 
-        <input placeholder="DNI"
-          onChange={e => setForm({ ...form, dni: e.target.value })} />
+        <input
+          placeholder="DNI"
+          value={form.dni}
+          onChange={e => setForm({ ...form, dni: e.target.value })}
+        />
 
-        <input placeholder="Edad" type="number"
-          onChange={e => setForm({ ...form, edad: e.target.value })} />
+        <input
+          placeholder="Edad"
+          type="number"
+          value={form.edad}
+          onChange={e => setForm({ ...form, edad: e.target.value })}
+        />
 
-        <input placeholder="Altura (m)"
-          onChange={e => setForm({ ...form, altura: e.target.value })} />
+        <input
+          placeholder="Altura (cm)"
+          type="number"
+          value={form.altura}
+          onChange={e => setForm({ ...form, altura: e.target.value })}
+        />
 
-        <input placeholder="Peso (kg)"
-          onChange={e => setForm({ ...form, peso: e.target.value })} />
+        <input
+          placeholder="Peso (kg)"
+          type="number"
+          value={form.peso}
+          onChange={e => setForm({ ...form, peso: e.target.value })}
+        />
 
         <button className="primary" onClick={guardar}>
           Guardar paciente
@@ -78,21 +111,16 @@ export default function App() {
 
   // ---------- LISTA PACIENTES ----------
   function ListaPacientes() {
-    useEffect(() => {
-      cargarPacientes();
-    }, []);
-
     return (
       <>
         <h2>Pacientes</h2>
 
         {pacientes.length === 0 && <p>No hay pacientes cargados.</p>}
 
-        <ul>
+        <ul className="lista-pacientes">
           {pacientes.map(p => (
             <li
               key={p.id}
-              style={{ cursor: "pointer" }}
               onClick={() => {
                 setPacienteActivo(p);
                 setVista("ficha");
@@ -120,7 +148,7 @@ export default function App() {
           <p><b>Nombre:</b> {pacienteActivo.nombre}</p>
           <p><b>DNI:</b> {pacienteActivo.dni}</p>
           <p><b>Edad:</b> {pacienteActivo.edad} años</p>
-          <p><b>Altura:</b> {pacienteActivo.altura} m</p>
+          <p><b>Altura:</b> {pacienteActivo.altura} cm</p>
           <p><b>Peso actual:</b> {pacienteActivo.peso} kg</p>
         </div>
 
@@ -148,9 +176,13 @@ export default function App() {
         <>
           <h2>Inicio</h2>
           <p>Estado del sistema:</p>
-          <span className={
-            estadoBackend === "Nutri App OK" ? "status-ok" : "status-off"
-          }>
+          <span
+            className={
+              estadoBackend === "Nutri App OK"
+                ? "status-ok"
+                : "status-off"
+            }
+          >
             {estadoBackend}
           </span>
         </>
