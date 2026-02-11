@@ -5,11 +5,14 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function App() {
   const [pacientes, setPacientes] = useState([]);
+  const [busqueda, setBusqueda] = useState("");
+  const [mostrarLista, setMostrarLista] = useState(false);
+
   const [pacienteActual, setPacienteActual] = useState(null);
+  const [modoEdicion, setModoEdicion] = useState(false);
   const [mostrarNuevo, setMostrarNuevo] = useState(false);
 
-  const [busqueda, setBusqueda] = useState("");
-  const [mostrarDropdown, setMostrarDropdown] = useState(false);
+  const [visitas, setVisitas] = useState([]);
 
   const [formPaciente, setFormPaciente] = useState({
     nombre: "",
@@ -29,8 +32,6 @@ export default function App() {
     cintura: ""
   });
 
-  const [visitas, setVisitas] = useState([]);
-
   useEffect(() => {
     cargarPacientes();
   }, []);
@@ -43,7 +44,10 @@ export default function App() {
 
   const seleccionarPaciente = async (p) => {
     setPacienteActual(p);
+    setModoEdicion(false);
     setMostrarNuevo(false);
+    setBusqueda("");
+    setMostrarLista(false);
 
     const res = await fetch(`${API_URL}/pacientes/${p.id}/visitas`);
     const data = await res.json();
@@ -78,9 +82,7 @@ export default function App() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(pacienteActual)
     });
-
-    alert("Paciente actualizado");
-    cargarPacientes();
+    setModoEdicion(false);
   };
 
   const crearVisita = async () => {
@@ -100,12 +102,7 @@ export default function App() {
     seleccionarPaciente(pacienteActual);
   };
 
-  const pacientesFiltrados = pacientes.filter((p) =>
-    `${p.nombre} ${p.apellido} ${p.dni}`
-      .toLowerCase()
-      .includes(busqueda.toLowerCase())
-  );
-
+  // ---------- IMC ----------
   const calcularIMC = () => {
     if (!pacienteActual?.peso || !pacienteActual?.altura) return null;
     return (
@@ -114,17 +111,23 @@ export default function App() {
     ).toFixed(2);
   };
 
-  const obtenerRangoIMC = (imc) => {
-    if (!imc) return { label: "", color: "#ccc", width: 0 };
+  const imc = calcularIMC();
 
-    if (imc < 18.5) return { label: "Bajo peso", color: "#3498db", width: 25 };
-    if (imc < 25) return { label: "Normal", color: "#2ecc71", width: 50 };
-    if (imc < 30) return { label: "Sobrepeso", color: "#f39c12", width: 75 };
-    return { label: "Obesidad", color: "#e74c3c", width: 100 };
+  const obtenerColorIMC = () => {
+    if (!imc) return "#ccc";
+    if (imc < 18.5) return "#3498db";
+    if (imc < 25) return "#2ecc71";
+    if (imc < 30) return "#f39c12";
+    return "#e74c3c";
   };
 
-  const imc = calcularIMC();
-  const rango = obtenerRangoIMC(imc);
+  const posicionIMC = imc ? Math.min((imc / 40) * 100, 100) : 0;
+
+  const pacientesFiltrados = pacientes.filter(
+    (p) =>
+      p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+      p.dni.includes(busqueda)
+  );
 
   return (
     <div className="container">
@@ -132,54 +135,42 @@ export default function App() {
 
       {/* BUSCADOR */}
       {!pacienteActual && !mostrarNuevo && (
-        <div className="buscador-container">
-          <button onClick={() => setMostrarNuevo(true)} className="btn">
-            + Nuevo paciente
-          </button>
+        <>
+          <div className="buscador">
+            <input
+              placeholder="Buscar paciente por nombre o DNI..."
+              value={busqueda}
+              onChange={(e) => {
+                setBusqueda(e.target.value);
+                setMostrarLista(true);
+              }}
+              onFocus={() => setMostrarLista(true)}
+            />
 
-          <input
-            type="text"
-            placeholder="Buscar paciente por nombre o DNI..."
-            value={busqueda}
-            onChange={(e) => {
-              setBusqueda(e.target.value);
-              setMostrarDropdown(true);
-            }}
-            onFocus={() => setMostrarDropdown(true)}
-            className="input-busqueda"
-          />
-
-          {mostrarDropdown && busqueda && (
-            <div className="dropdown">
-              {pacientesFiltrados.length > 0 ? (
-                pacientesFiltrados.map((p) => (
+            {mostrarLista && busqueda && (
+              <div className="dropdown">
+                {pacientesFiltrados.map((p) => (
                   <div
                     key={p.id}
-                    className="dropdown-item"
-                    onClick={() => {
-                      seleccionarPaciente(p);
-                      setBusqueda("");
-                      setMostrarDropdown(false);
-                    }}
+                    onClick={() => seleccionarPaciente(p)}
                   >
-                    {p.nombre} {p.apellido} — DNI {p.dni}
+                    {p.nombre} {p.apellido} - {p.dni}
                   </div>
-                ))
-              ) : (
-                <div className="dropdown-item vacío">
-                  No encontrado
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button className="btn" onClick={() => setMostrarNuevo(true)}>
+            + Nuevo paciente
+          </button>
+        </>
       )}
 
       {/* NUEVO PACIENTE */}
       {mostrarNuevo && (
-        <div className="card form-card">
+        <div className="card">
           <h2>Nuevo paciente</h2>
-
           {Object.keys(formPaciente).map((campo) => (
             <input
               key={campo}
@@ -193,7 +184,6 @@ export default function App() {
               }
             />
           ))}
-
           <button className="btn" onClick={crearPaciente}>
             Guardar
           </button>
@@ -202,48 +192,51 @@ export default function App() {
 
       {/* PERFIL */}
       {pacienteActual && (
-        <div className="perfil-layout">
-
-          {/* FICHA EDITABLE */}
+        <div className="layout">
           <div className="card perfil">
             <h2>Ficha del paciente</h2>
 
-            {Object.keys(pacienteActual).map((campo) => {
-              if (campo === "id") return null;
-
-              return (
-                <input
-                  key={campo}
-                  value={pacienteActual[campo] || ""}
-                  onChange={(e) =>
-                    setPacienteActual({
-                      ...pacienteActual,
-                      [campo]: e.target.value
-                    })
-                  }
-                />
-              );
-            })}
+            {Object.keys(pacienteActual).map(
+              (campo) =>
+                campo !== "id" && (
+                  <input
+                    key={campo}
+                    value={pacienteActual[campo] || ""}
+                    disabled={!modoEdicion}
+                    onChange={(e) =>
+                      setPacienteActual({
+                        ...pacienteActual,
+                        [campo]: e.target.value
+                      })
+                    }
+                  />
+                )
+            )}
 
             {imc && (
               <>
                 <h3>IMC: {imc}</h3>
                 <div className="imc-bar">
                   <div
-                    className="imc-fill"
+                    className="imc-marker"
                     style={{
-                      width: `${rango.width}%`,
-                      background: rango.color
+                      left: `${posicionIMC}%`,
+                      background: obtenerColorIMC()
                     }}
                   ></div>
                 </div>
-                <p style={{ color: rango.color }}>{rango.label}</p>
               </>
             )}
 
-            <button className="btn" onClick={actualizarPaciente}>
-              Guardar cambios
-            </button>
+            {!modoEdicion ? (
+              <button onClick={() => setModoEdicion(true)}>
+                Editar
+              </button>
+            ) : (
+              <button className="btn" onClick={actualizarPaciente}>
+                Guardar cambios
+              </button>
+            )}
 
             <button onClick={() => setPacienteActual(null)}>
               ← Volver
@@ -254,30 +247,59 @@ export default function App() {
           <div className="card historial">
             <h2>Historial</h2>
 
-            {visitas.map((v) => (
-              <div key={v.id} className="visita-card">
-                <h4>{v.fecha}</h4>
-                <p>Peso: {v.peso} kg</p>
-                <p>Cintura: {v.cintura} cm</p>
-              </div>
-            ))}
+            <div className="tabla-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Peso</th>
+                    <th>Cintura</th>
+                    <th>Altura</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visitas.map((v) => (
+                    <tr key={v.id}>
+                      <td>{v.fecha}</td>
+                      <td>{v.peso} kg</td>
+                      <td>{v.cintura || "-"} cm</td>
+                      <td>{v.altura} m</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             <h3>Nueva visita</h3>
 
-            {Object.keys(formVisita).map((campo) => (
-              <input
-                key={campo}
-                type={campo === "fecha" ? "date" : "text"}
-                placeholder={campo}
-                value={formVisita[campo]}
-                onChange={(e) =>
-                  setFormVisita({
-                    ...formVisita,
-                    [campo]: e.target.value
-                  })
-                }
-              />
-            ))}
+            <input
+              type="date"
+              value={formVisita.fecha}
+              onChange={(e) =>
+                setFormVisita({ ...formVisita, fecha: e.target.value })
+              }
+            />
+            <input
+              placeholder="Peso"
+              value={formVisita.peso}
+              onChange={(e) =>
+                setFormVisita({ ...formVisita, peso: e.target.value })
+              }
+            />
+            <input
+              placeholder="Altura"
+              value={formVisita.altura}
+              onChange={(e) =>
+                setFormVisita({ ...formVisita, altura: e.target.value })
+              }
+            />
+            <input
+              placeholder="Cintura"
+              value={formVisita.cintura}
+              onChange={(e) =>
+                setFormVisita({ ...formVisita, cintura: e.target.value })
+              }
+            />
 
             <button className="btn" onClick={crearVisita}>
               Guardar visita
