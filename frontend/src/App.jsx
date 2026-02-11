@@ -8,9 +8,8 @@ export default function App() {
   const [estadoBackend, setEstadoBackend] = useState("");
   const [pacientes, setPacientes] = useState([]);
   const [pacienteActivo, setPacienteActivo] = useState(null);
-  const [diagnostico, setDiagnostico] = useState("");
 
-  // ---------- BACKEND STATUS ----------
+  // ================= BACKEND STATUS =================
   useEffect(() => {
     fetch(API)
       .then(r => r.json())
@@ -18,14 +17,14 @@ export default function App() {
       .catch(() => setEstadoBackend("Backend OFF"));
   }, []);
 
-  // ---------- CARGAR PACIENTES ----------
+  // ================= PACIENTES =================
   const cargarPacientes = () => {
     fetch(`${API}/pacientes`)
       .then(r => r.json())
       .then(d => setPacientes(d));
   };
 
-  // ---------- NUEVO PACIENTE ----------
+  // ================= NUEVO PACIENTE =================
   function NuevoPaciente() {
     const [form, setForm] = useState({
       nombre: "",
@@ -40,7 +39,12 @@ export default function App() {
       await fetch(`${API}/pacientes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
+        body: JSON.stringify({
+          ...form,
+          edad: Number(form.edad),
+          altura: Number(String(form.altura).replace(",", ".")),
+          peso: Number(String(form.peso).replace(",", "."))
+        })
       });
 
       setVista("pacientes");
@@ -51,12 +55,19 @@ export default function App() {
       <>
         <h2>Nuevo paciente</h2>
 
-        {["nombre","apellido","dni","edad","altura","peso"].map(campo => (
+        {[
+          ["Nombre", "nombre"],
+          ["Apellido", "apellido"],
+          ["DNI", "dni"],
+          ["Edad", "edad"],
+          ["Altura (m)", "altura"],
+          ["Peso (kg)", "peso"]
+        ].map(([label, key]) => (
           <input
-            key={campo}
-            placeholder={campo.toUpperCase()}
-            type={campo === "edad" || campo === "peso" ? "number" : "text"}
-            onChange={e => setForm({ ...form, [campo]: e.target.value })}
+            key={key}
+            placeholder={label}
+            value={form[key]}
+            onChange={e => setForm({ ...form, [key]: e.target.value })}
           />
         ))}
 
@@ -67,9 +78,11 @@ export default function App() {
     );
   }
 
-  // ---------- LISTA ----------
+  // ================= LISTA =================
   function ListaPacientes() {
-    useEffect(() => { cargarPacientes(); }, []);
+    useEffect(() => {
+      cargarPacientes();
+    }, []);
 
     return (
       <>
@@ -81,7 +94,6 @@ export default function App() {
               key={p.id}
               onClick={() => {
                 setPacienteActivo(p);
-                setDiagnostico(p.diagnostico || "");
                 setVista("ficha");
               }}
             >
@@ -94,59 +106,102 @@ export default function App() {
     );
   }
 
-  // ---------- IMC ----------
-  function calcularIMC(p) {
-    const h = p.altura;
-    return (p.peso / (h * h)).toFixed(1);
-  }
-
-  function rangoIMC(imc) {
-    if (imc < 18.5) return "Bajo peso";
-    if (imc < 25) return "Normal";
-    if (imc < 30) return "Sobrepeso";
-    return "Obesidad";
-  }
-
+  // ================= FICHA =================
   function FichaPaciente() {
-    const imc = calcularIMC(pacienteActivo);
-    const rango = rangoIMC(imc);
+    const [form, setForm] = useState({
+      nombre: pacienteActivo.nombre,
+      apellido: pacienteActivo.apellido,
+      dni: pacienteActivo.dni,
+      edad: pacienteActivo.edad,
+      altura: pacienteActivo.altura,
+      peso: pacienteActivo.peso,
+      diagnostico: pacienteActivo.diagnostico || ""
+    });
+
+    const alturaNum = parseFloat(String(form.altura).replace(",", "."));
+    const pesoNum = parseFloat(String(form.peso).replace(",", "."));
+
+    const imc =
+      alturaNum && pesoNum
+        ? (pesoNum / (alturaNum * alturaNum)).toFixed(1)
+        : "--";
+
+    let rango = "";
+    if (imc !== "--") {
+      if (imc < 18.5) rango = "Bajo peso";
+      else if (imc < 25) rango = "Normal";
+      else if (imc < 30) rango = "Sobrepeso";
+      else rango = "Obesidad";
+    }
+
+    const guardarCambios = async () => {
+      await fetch(`${API}/pacientes/${pacienteActivo.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          altura: alturaNum,
+          peso: pesoNum
+        })
+      });
+
+      await fetch(`${API}/pacientes/${pacienteActivo.id}/diagnostico`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ diagnostico: form.diagnostico })
+      });
+
+      alert("Ficha actualizada");
+      setVista("pacientes");
+      cargarPacientes();
+    };
 
     return (
       <div className="ficha-layout">
-
         {/* IZQUIERDA */}
         <div className="ficha">
           <h2>Ficha del paciente</h2>
 
-          <p><b>Nombre:</b> {pacienteActivo.nombre}</p>
-          <p><b>Apellido:</b> {pacienteActivo.apellido}</p>
-          <p><b>DNI:</b> {pacienteActivo.dni}</p>
-          <p><b>Edad:</b> {pacienteActivo.edad}</p>
-          <p><b>Altura:</b> {pacienteActivo.altura} m</p>
-          <p><b>Peso:</b> {pacienteActivo.peso} kg</p>
+          {[
+            ["Nombre", "nombre"],
+            ["Apellido", "apellido"],
+            ["DNI", "dni"],
+            ["Edad", "edad"],
+            ["Altura (m)", "altura"],
+            ["Peso (kg)", "peso"]
+          ].map(([label, key]) => (
+            <div key={key}>
+              <label>{label}</label>
+              <input
+                value={form[key]}
+                onChange={e => setForm({ ...form, [key]: e.target.value })}
+              />
+            </div>
+          ))}
 
-          {/* DIAGNÓSTICO */}
           <div className="diagnostico-box">
             <h3>Diagnóstico</h3>
-
             <textarea
-              value={diagnostico}
-              placeholder="Escriba el diagnóstico del paciente..."
-              onChange={e => setDiagnostico(e.target.value)}
+              value={form.diagnostico}
+              placeholder="Diagnóstico clínico del paciente…"
+              onChange={e =>
+                setForm({ ...form, diagnostico: e.target.value })
+              }
             />
-
-            <button>Guardar diagnóstico</button>
           </div>
 
-          <button onClick={() => setVista("pacientes")}>
+          <button className="primary" onClick={guardarCambios}>
+            Guardar cambios
+          </button>
+
+          <button className="volver" onClick={() => setVista("pacientes")}>
             ← Volver
           </button>
         </div>
 
-        {/* DERECHA IMC */}
+        {/* DERECHA */}
         <div className="imc-card">
           <h3>IMC</h3>
-
           <div className="imc-valor">{imc}</div>
           <div className="imc-rango">{rango}</div>
 
@@ -156,15 +211,12 @@ export default function App() {
               style={{ left: `${Math.min(imc * 3, 100)}%` }}
             />
           </div>
-
-          <small>Bajo | Normal | Sobrepeso | Obesidad</small>
         </div>
-
       </div>
     );
   }
 
-  // ---------- RENDER ----------
+  // ================= RENDER =================
   return (
     <div className="app-container">
       <h1>Nutri App</h1>
