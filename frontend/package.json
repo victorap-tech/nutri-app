@@ -4,10 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview --host",
-    "start": "vite preview --host --port $PORT"
+    "start": "npx serve -s dist -l $PORT"
   },
   "dependencies": {
     "react": "^18.3.1",
