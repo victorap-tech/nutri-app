@@ -1,115 +1,156 @@
+/* ===== RESET ===== */
 body {
   margin: 0;
-  font-family: "Inter", sans-serif;
-  background: #f4f6f9;
-  color: #2c3e50;
+  font-family: "Segoe UI", sans-serif;
+  background-color: #f4f6f9;
+  color: #333;
 }
 
-.layout {
-  display: grid;
-  grid-template-columns: 260px 1fr 1fr;
-  gap: 24px;
+/* ===== CONTENEDOR GENERAL ===== */
+.container {
+  max-width: 1100px;
+  margin: auto;
   padding: 30px;
-  height: 100vh;
-  box-sizing: border-box;
 }
 
-/* COLUMNAS */
-.col {
-  background: transparent;
-  overflow-y: auto;
-}
-
-/* TITULOS */
-h2 {
-  margin-top: 0;
-  font-weight: 600;
-}
-
-h3 {
-  margin-top: 0;
-  font-weight: 500;
-}
-
-/* TARJETAS */
-.card {
-  background: white;
-  padding: 20px;
-  border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+h1 {
   margin-bottom: 20px;
 }
 
-/* LISTA PACIENTES */
-.paciente-item {
-  padding: 12px 14px;
-  margin-bottom: 8px;
-  border-radius: 8px;
+/* ===== BOTONES ===== */
+.btn {
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
   cursor: pointer;
+  margin-top: 10px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.btn:hover {
+  background-color: #27ae60;
+}
+
+/* ===== TARJETAS ===== */
+.card {
   background: white;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+/* ===== BUSCADOR ===== */
+.buscador-container {
+  position: relative;
+  max-width: 500px;
+}
+
+.input-busqueda {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-top: 10px;
+  font-size: 15px;
+}
+
+.dropdown {
+  position: absolute;
+  width: 100%;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-top: 5px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
+  padding: 10px;
+  cursor: pointer;
   transition: 0.2s;
 }
 
-.paciente-item:hover {
-  background: #eef3ff;
+.dropdown-item:hover {
+  background-color: #f0f0f0;
 }
 
-.paciente-item.activo {
-  background: #dbe4ff;
-  font-weight: 600;
+.dropdown-item.vacío {
+  color: #888;
+  cursor: default;
 }
 
-/* BOTONES */
-.primary {
-  background: #3b82f6;
-  border: none;
-  padding: 10px 16px;
-  color: white;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  margin-top: 10px;
-}
-
-.primary:hover {
-  background: #2563eb;
-}
-
-/* INPUTS */
-input, textarea {
+/* ===== INPUTS GENERALES ===== */
+input {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 12px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+  padding: 8px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
   font-size: 14px;
   box-sizing: border-box;
 }
 
-textarea {
-  min-height: 80px;
-  resize: vertical;
+input:focus {
+  outline: none;
+  border-color: #2ecc71;
 }
 
-/* IMC */
-.barra-imc {
+/* ===== PERFIL LAYOUT ===== */
+.perfil-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.perfil {
+  flex: 1;
+  min-width: 300px;
+}
+
+.historial {
+  flex: 1;
+  min-width: 300px;
+}
+
+/* ===== IMC BAR ===== */
+.imc-bar {
   width: 100%;
-  height: 14px;
-  background: #e5e7eb;
-  border-radius: 20px;
+  height: 16px;
+  background: #eee;
+  border-radius: 10px;
   overflow: hidden;
-  margin-top: 8px;
-  margin-bottom: 8px;
+  margin: 10px 0;
 }
 
-.progreso {
+.imc-fill {
   height: 100%;
-  transition: 0.4s;
+  transition: 0.3s ease;
 }
 
-/* DATOS CLINICOS */
-.dato {
-  margin-bottom: 6px;
-  font-size: 14px;
+/* ===== HISTORIAL ===== */
+.visita-card {
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  border-left: 4px solid #2ecc71;
+}
+
+.historial h3 {
+  margin-top: 20px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .perfil-layout {
+    flex-direction: column;
+  }
 }
