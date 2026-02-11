@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
-const API = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function App() {
   const [pacientes, setPacientes] = useState([]);
   const [pacienteActual, setPacienteActual] = useState(null);
   const [mostrarNuevo, setMostrarNuevo] = useState(false);
+
+  const [busqueda, setBusqueda] = useState("");
+  const [mostrarDropdown, setMostrarDropdown] = useState(false);
 
   const [formPaciente, setFormPaciente] = useState({
     nombre: "",
@@ -15,15 +18,15 @@ export default function App() {
     edad: "",
     altura: "",
     peso: "",
-    cintura: ""
+    cintura: "",
+    diagnostico: ""
   });
 
   const [formVisita, setFormVisita] = useState({
     fecha: "",
     peso: "",
     altura: "",
-    cintura: "",
-    diagnostico: ""
+    cintura: ""
   });
 
   const [visitas, setVisitas] = useState([]);
@@ -33,7 +36,7 @@ export default function App() {
   }, []);
 
   const cargarPacientes = async () => {
-    const res = await fetch(`${API}/pacientes`);
+    const res = await fetch(`${API_URL}/pacientes`);
     const data = await res.json();
     setPacientes(data);
   };
@@ -42,18 +45,13 @@ export default function App() {
     setPacienteActual(p);
     setMostrarNuevo(false);
 
-    const res = await fetch(`${API}/pacientes/${p.id}/visitas`);
+    const res = await fetch(`${API_URL}/pacientes/${p.id}/visitas`);
     const data = await res.json();
     setVisitas(data);
   };
 
   const crearPaciente = async () => {
-    if (!formPaciente.cintura) {
-      alert("La cintura es obligatoria");
-      return;
-    }
-
-    await fetch(`${API}/pacientes`, {
+    await fetch(`${API_URL}/pacientes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formPaciente)
@@ -66,15 +64,27 @@ export default function App() {
       edad: "",
       altura: "",
       peso: "",
-      cintura: ""
+      cintura: "",
+      diagnostico: ""
     });
 
     setMostrarNuevo(false);
     cargarPacientes();
   };
 
+  const actualizarPaciente = async () => {
+    await fetch(`${API_URL}/pacientes/${pacienteActual.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pacienteActual)
+    });
+
+    alert("Paciente actualizado");
+    cargarPacientes();
+  };
+
   const crearVisita = async () => {
-    await fetch(`${API}/pacientes/${pacienteActual.id}/visitas`, {
+    await fetch(`${API_URL}/pacientes/${pacienteActual.id}/visitas`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formVisita)
@@ -84,12 +94,17 @@ export default function App() {
       fecha: "",
       peso: "",
       altura: "",
-      cintura: "",
-      diagnostico: ""
+      cintura: ""
     });
 
     seleccionarPaciente(pacienteActual);
   };
+
+  const pacientesFiltrados = pacientes.filter((p) =>
+    `${p.nombre} ${p.apellido} ${p.dni}`
+      .toLowerCase()
+      .includes(busqueda.toLowerCase())
+  );
 
   const calcularIMC = () => {
     if (!pacienteActual?.peso || !pacienteActual?.altura) return null;
@@ -115,26 +130,49 @@ export default function App() {
     <div className="container">
       <h1>Nutri App</h1>
 
-      {/* LISTA PACIENTES */}
+      {/* BUSCADOR */}
       {!pacienteActual && !mostrarNuevo && (
-        <>
+        <div className="buscador-container">
           <button onClick={() => setMostrarNuevo(true)} className="btn">
             + Nuevo paciente
           </button>
 
-          <div className="grid">
-            {pacientes.map((p) => (
-              <div
-                key={p.id}
-                className="card paciente-card"
-                onClick={() => seleccionarPaciente(p)}
-              >
-                <h3>{p.nombre} {p.apellido}</h3>
-                <p>DNI: {p.dni}</p>
-              </div>
-            ))}
-          </div>
-        </>
+          <input
+            type="text"
+            placeholder="Buscar paciente por nombre o DNI..."
+            value={busqueda}
+            onChange={(e) => {
+              setBusqueda(e.target.value);
+              setMostrarDropdown(true);
+            }}
+            onFocus={() => setMostrarDropdown(true)}
+            className="input-busqueda"
+          />
+
+          {mostrarDropdown && busqueda && (
+            <div className="dropdown">
+              {pacientesFiltrados.length > 0 ? (
+                pacientesFiltrados.map((p) => (
+                  <div
+                    key={p.id}
+                    className="dropdown-item"
+                    onClick={() => {
+                      seleccionarPaciente(p);
+                      setBusqueda("");
+                      setMostrarDropdown(false);
+                    }}
+                  >
+                    {p.nombre} {p.apellido} — DNI {p.dni}
+                  </div>
+                ))
+              ) : (
+                <div className="dropdown-item vacío">
+                  No encontrado
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
       {/* NUEVO PACIENTE */}
@@ -159,22 +197,33 @@ export default function App() {
           <button className="btn" onClick={crearPaciente}>
             Guardar
           </button>
-          <button onClick={() => setMostrarNuevo(false)}>
-            Cancelar
-          </button>
         </div>
       )}
 
-      {/* FICHA PACIENTE */}
+      {/* PERFIL */}
       {pacienteActual && (
         <div className="perfil-layout">
+
+          {/* FICHA EDITABLE */}
           <div className="card perfil">
-            <h2>{pacienteActual.nombre} {pacienteActual.apellido}</h2>
-            <p><b>DNI:</b> {pacienteActual.dni}</p>
-            <p><b>Edad:</b> {pacienteActual.edad}</p>
-            <p><b>Altura:</b> {pacienteActual.altura} m</p>
-            <p><b>Peso actual:</b> {pacienteActual.peso} kg</p>
-            <p><b>Cintura actual:</b> {pacienteActual.cintura || "-"} cm</p>
+            <h2>Ficha del paciente</h2>
+
+            {Object.keys(pacienteActual).map((campo) => {
+              if (campo === "id") return null;
+
+              return (
+                <input
+                  key={campo}
+                  value={pacienteActual[campo] || ""}
+                  onChange={(e) =>
+                    setPacienteActual({
+                      ...pacienteActual,
+                      [campo]: e.target.value
+                    })
+                  }
+                />
+              );
+            })}
 
             {imc && (
               <>
@@ -192,6 +241,10 @@ export default function App() {
               </>
             )}
 
+            <button className="btn" onClick={actualizarPaciente}>
+              Guardar cambios
+            </button>
+
             <button onClick={() => setPacienteActual(null)}>
               ← Volver
             </button>
@@ -200,16 +253,14 @@ export default function App() {
           {/* HISTORIAL */}
           <div className="card historial">
             <h2>Historial</h2>
-            <div className="historial-scroll">
-              {visitas.map((v) => (
-                <div key={v.id} className="visita-card">
-                  <h4>{v.fecha}</h4>
-                  <p>Peso: {v.peso} kg</p>
-                  <p>Cintura: {v.cintura} cm</p>
-                  <p>Diagnóstico: {v.diagnostico}</p>
-                </div>
-              ))}
-            </div>
+
+            {visitas.map((v) => (
+              <div key={v.id} className="visita-card">
+                <h4>{v.fecha}</h4>
+                <p>Peso: {v.peso} kg</p>
+                <p>Cintura: {v.cintura} cm</p>
+              </div>
+            ))}
 
             <h3>Nueva visita</h3>
 
