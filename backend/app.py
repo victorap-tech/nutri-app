@@ -72,8 +72,8 @@ def listar_pacientes():
 
     pacientes = query.all()
 
-   return jsonify([
-    {
+    return jsonify([
+      {
         "id": p.id,
         "nombre": p.nombre,
         "apellido": p.apellido,
@@ -84,9 +84,9 @@ def listar_pacientes():
         "cintura": p.cintura,
         "fecha_visita": p.fecha_visita.isoformat() if p.fecha_visita else None,
         "diagnostico": p.diagnostico
-    }
-    for p in pacientes
-])
+      }
+      for p in pacientes
+    ])
 
 @app.route("/pacientes/<int:paciente_id>", methods=["PUT"])
 def actualizar_paciente(paciente_id):
