@@ -1,144 +1,69 @@
 /* =========================
-   RESET GENERAL
-   ========================= */
+   RESET BASICO
+========================= */
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
 body {
   margin: 0;
-  font-family: "Segoe UI", Roboto, Arial, sans-serif;
-  background-color: #f4f6f8;
+  background: #eef2f0;
   color: #333;
 }
 
 /* =========================
    CONTENEDOR PRINCIPAL
-   ========================= */
+========================= */
 .app-container {
-  max-width: 900px;
-  margin: 40px auto;
-  background: #ffffff;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
 }
 
 /* =========================
    TITULOS
-   ========================= */
+========================= */
 h1 {
-  margin-top: 0;
-  font-size: 28px;
-  color: #2e7d32; /* verde salud */
+  margin-bottom: 10px;
+  color: #1b5e20;
 }
 
 h2 {
-  font-size: 20px;
-  margin-top: 20px;
-  color: #444;
+  margin-top: 0;
+  color: #2e7d32;
+}
+
+h3 {
+  margin-bottom: 10px;
+  color: #1b5e20;
 }
 
 /* =========================
-   BOTONERA SUPERIOR
-   ========================= */
+   BARRA DE NAVEGACION
+========================= */
 .nav-buttons {
-  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
 .nav-buttons button {
-  margin-right: 10px;
-  padding: 10px 18px;
-  border: none;
+  padding: 8px 14px;
   border-radius: 6px;
-  background-color: #e8f5e9;
-  color: #2e7d32;
-  font-weight: 600;
+  border: none;
+  background: #c8e6c9;
   cursor: pointer;
-  transition: 0.2s;
+  font-size: 14px;
 }
 
 .nav-buttons button:hover {
-  background-color: #c8e6c9;
-}
-
-/* =========================
-   FORMULARIOS
-   ========================= */
-input {
-  display: block;
-  width: 100%;
-  max-width: 400px;
-  margin-bottom: 12px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-input:focus {
-  outline: none;
-  border-color: #66bb6a;
-}
-
-/* =========================
-   BOTONES
-   ========================= */
-button {
-  font-family: inherit;
-}
-
-button.primary {
-  background-color: #2e7d32;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 6px;
-  font-size: 15px;
-  cursor: pointer;
-}
-
-button.primary:hover {
-  background-color: #1b5e20;
-}
-
-/* =========================
-   LISTA DE PACIENTES
-   ========================= */
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-li {
-  padding: 12px;
-  margin-bottom: 10px;
-  background: #f9f9f9;
-  border-left: 5px solid #66bb6a;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-li:hover {
-  background-color: #f1f8f4;
-}
-
-/* =========================
-   FICHA DEL PACIENTE
-   ========================= */
-.ficha {
-  margin-top: 15px;
-  padding: 15px;
-  background: #f9f9f9;
-  border-radius: 6px;
-  border-left: 5px solid #2e7d32;
-}
-
-.ficha p {
-  margin: 6px 0;
-  font-size: 15px;
+  background: #a5d6a7;
 }
 
 /* =========================
    ESTADO BACKEND
-   ========================= */
+========================= */
 .status-ok {
   color: #2e7d32;
   font-weight: bold;
@@ -150,29 +75,126 @@ li:hover {
 }
 
 /* =========================
-   SEPARADOR
-   ========================= */
-hr {
-  border: none;
-  height: 1px;
-  background: #ddd;
-  margin: 25px 0;
+   FORMULARIOS
+========================= */
+input {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  padding: 8px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
 }
 
 /* =========================
-   RESPONSIVE SIMPLE
-   ========================= */
-@media (max-width: 600px) {
-  .app-container {
-    margin: 20px;
-    padding: 20px;
-  }
+   BOTONES
+========================= */
+button.primary {
+  background: #2e7d32;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
 
-  input {
-    max-width: 100%;
-  }
+button.primary:hover {
+  background: #256428;
+}
 
-  .nav-buttons button {
-    margin-bottom: 10px;
-  }
+/* =========================
+   LISTA PACIENTES
+========================= */
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  background: white;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  border-left: 4px solid #2e7d32;
+}
+
+li:hover {
+  background: #f1f8f4;
+}
+
+/* =========================
+   FICHA DEL PACIENTE
+========================= */
+.ficha {
+  width: 100%;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 6px solid #2e7d32;
+  margin-bottom: 20px;
+}
+
+.ficha p {
+  margin: 6px 0;
+}
+
+/* =========================
+   DIAGNOSTICO
+========================= */
+.diagnostico-box {
+  margin-top: 25px;
+  width: 100%;
+}
+
+.diagnostico-box textarea {
+  width: 100%;
+  min-height: 130px;
+  resize: vertical;
+  padding: 12px;
+  font-size: 15px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 12px;
+}
+
+.diagnostico-box button {
+  background: #2e7d32;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.diagnostico-box button:hover {
+  background: #256428;
+}
+
+/* =========================
+   BOTON VOLVER
+========================= */
+button.volver {
+  margin-top: 15px;
+  background: #eeeeee;
+  border: 1px solid #ccc;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button.volver:hover {
+  background: #e0e0e0;
+}
+
+/* =========================
+   HR
+========================= */
+hr {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 20px 0;
 }
