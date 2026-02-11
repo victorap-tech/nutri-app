@@ -126,19 +126,29 @@ def buscar_paciente():
 def crear_visita(paciente_id):
     data = request.json
 
+    peso = to_float(data.get("peso"))
+    altura = to_float(data.get("altura"))
+    cintura = to_float(data.get("cintura"))
+
+    imc, rango = calcular_imc(peso, altura)
+
     visita = Visita(
         paciente_id=paciente_id,
         fecha=date.fromisoformat(data["fecha"]),
-        peso=data["peso"],
-        altura=data.get("altura"),
-        cintura=data.get("cintura"),
+        peso=peso,
+        altura=altura,
+        cintura=cintura,
         diagnostico=data.get("diagnostico")
     )
 
     db.session.add(visita)
     db.session.commit()
 
-    return {"status": "visita creada"}, 201
+    return {
+        "status": "visita creada",
+        "imc": imc,
+        "rango_imc": rango
+    }, 201
 
 @app.route("/pacientes/<int:paciente_id>/visitas", methods=["GET"])
 def listar_visitas(paciente_id):
