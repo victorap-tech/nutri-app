@@ -1,100 +1,105 @@
 body {
+  margin: 0;
   font-family: Arial, sans-serif;
-  background: #f2f4f6;
+  background: #f2f5f8;
 }
 
-.app-container {
-  max-width: 1200px;
-  margin: auto;
-  background: white;
+.app {
   padding: 20px;
-  border-radius: 8px;
+}
+
+h1 {
+  margin-bottom: 10px;
 }
 
 .nav button {
   margin-right: 10px;
 }
 
-input, textarea {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 8px;
-}
-
-button {
-  padding: 8px 14px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-}
-
-.primary {
-  background: #2e7d32;
-  color: white;
-}
-
-.volver {
-  margin-top: 10px;
-  background: #ddd;
+.lista {
+  list-style: none;
+  padding: 0;
 }
 
 .lista li {
-  background: #eef;
-  margin-bottom: 6px;
+  background: white;
   padding: 10px;
-  border-radius: 6px;
+  margin-bottom: 8px;
   cursor: pointer;
+  border-radius: 6px;
 }
 
-.ficha-layout {
+.ficha-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 20px;
 }
 
-.ficha {
-  background: #fafafa;
+.card {
+  background: white;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
-.diagnostico-box textarea {
-  min-height: 120px;
-  resize: vertical;
+label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
 }
 
-.imc-card {
-  background: #e3f2fd;
-  padding: 20px;
-  border-radius: 8px;
-  text-align: center;
+input, textarea {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
 }
 
-.imc-valor {
+.diagnostico {
+  width: 100%;
+  min-height: 100px;
+}
+
+.guardar {
+  margin-top: 15px;
+  background: #2e7d32;
+  color: white;
+  border: none;
+  padding: 10px;
+  width: 100%;
+}
+
+.volver {
+  margin-top: 10px;
+}
+
+.imc-num {
   font-size: 48px;
+  text-align: center;
   font-weight: bold;
 }
 
 .imc-rango {
-  margin-bottom: 10px;
-  font-weight: bold;
+  text-align: center;
+  font-size: 18px;
+  margin-bottom: 15px;
 }
 
-.imc-bar {
+.barra-imc {
   position: relative;
-  height: 10px;
-  background: #ccc;
-  border-radius: 5px;
+  display: flex;
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
-.imc-indicador {
+.bajo { background: #64b5f6; width: 25%; }
+.normal { background: #81c784; width: 25%; }
+.sobre { background: #ffb74d; width: 25%; }
+.obeso { background: #e57373; width: 25%; }
+
+.indicador {
   position: absolute;
-  top: -4px;
-  width: 8px;
-  height: 18px;
-  background: red;
-  border-radius: 4px;
+  top: -5px;
+  width: 3px;
+  height: 30px;
+  background: black;
 }
-
-.ok { color: green; }
-.off { color: red; }
