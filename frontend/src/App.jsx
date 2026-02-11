@@ -8,7 +8,7 @@ export default function App() {
   const [pacientes, setPacientes] = useState([]);
   const [paciente, setPaciente] = useState(null);
 
-  // ---------- CARGAR PACIENTES ----------
+  // ---------------- CARGAR PACIENTES ----------------
   const cargarPacientes = () => {
     fetch(`${API}/pacientes`)
       .then(res => res.json())
@@ -19,7 +19,7 @@ export default function App() {
     cargarPacientes();
   }, []);
 
-  // ---------- CALCULO IMC ----------
+  // ---------------- IMC ----------------
   const calcularIMC = (peso, altura) => {
     if (!peso || !altura) return null;
     return (peso / (altura * altura)).toFixed(1);
@@ -33,11 +33,71 @@ export default function App() {
     return "Obesidad";
   };
 
-  // ---------- LISTA ----------
+  // ---------------- NUEVO PACIENTE ----------------
+  function NuevoPaciente() {
+    const [form, setForm] = useState({
+      nombre: "",
+      apellido: "",
+      dni: "",
+      edad: "",
+      altura: "",
+      peso: "",
+      cintura: ""
+    });
+
+    const guardar = () => {
+      fetch(`${API}/pacientes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form)
+      }).then(() => {
+        alert("Paciente creado");
+        setVista("pacientes");
+        cargarPacientes();
+      });
+    };
+
+    return (
+      <div className="card">
+        <h2>Nuevo paciente</h2>
+
+        <label>Nombre</label>
+        <input onChange={e => setForm({ ...form, nombre: e.target.value })} />
+
+        <label>Apellido</label>
+        <input onChange={e => setForm({ ...form, apellido: e.target.value })} />
+
+        <label>DNI</label>
+        <input onChange={e => setForm({ ...form, dni: e.target.value })} />
+
+        <label>Edad</label>
+        <input type="number" onChange={e => setForm({ ...form, edad: e.target.value })} />
+
+        <label>Altura (m)</label>
+        <input type="number" step="0.01" onChange={e => setForm({ ...form, altura: e.target.value })} />
+
+        <label>Peso (kg)</label>
+        <input type="number" step="0.1" onChange={e => setForm({ ...form, peso: e.target.value })} />
+
+        <label>Cintura (cm)</label>
+        <input type="number" onChange={e => setForm({ ...form, cintura: e.target.value })} />
+
+        <button className="primary" onClick={guardar}>Guardar paciente</button>
+        <button onClick={() => setVista("pacientes")}>← Cancelar</button>
+      </div>
+    );
+  }
+
+  // ---------------- LISTA ----------------
   function ListaPacientes() {
     return (
       <div className="card">
-        <h2>Pacientes</h2>
+        <div className="header-flex">
+          <h2>Pacientes</h2>
+          <button className="primary" onClick={() => setVista("nuevo")}>
+            + Nuevo paciente
+          </button>
+        </div>
 
         {pacientes.map(p => (
           <div
@@ -55,7 +115,7 @@ export default function App() {
     );
   }
 
-  // ---------- FICHA ----------
+  // ---------------- FICHA ----------------
   function FichaPaciente() {
     const [form, setForm] = useState({
       ...paciente,
@@ -113,7 +173,7 @@ export default function App() {
           <button onClick={() => setVista("pacientes")}>← Volver</button>
         </div>
 
-        {/* ---------- IMC ---------- */}
+        {/* IMC */}
         <div className="card imc">
           <h3>IMC</h3>
           <div className="imc-num">{imc || "--"}</div>
@@ -131,12 +191,13 @@ export default function App() {
     );
   }
 
-  // ---------- RENDER ----------
+  // ---------------- RENDER ----------------
   return (
     <div className="app">
       <h1>Nutri App</h1>
 
       {vista === "pacientes" && <ListaPacientes />}
+      {vista === "nuevo" && <NuevoPaciente />}
       {vista === "ficha" && paciente && <FichaPaciente />}
     </div>
   );
