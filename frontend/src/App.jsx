@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API = import.meta.env.VITE_API_URL;
 
 export default function App() {
   const [pacientes, setPacientes] = useState([]);
@@ -53,7 +53,7 @@ export default function App() {
       return;
     }
 
-    await fetch(`${API_URL}/pacientes`, {
+    await fetch(`${API}/pacientes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formPaciente)
