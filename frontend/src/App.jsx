@@ -5,11 +5,12 @@ const API = import.meta.env.VITE_API_URL;
 
 export default function App() {
   const [vista, setVista] = useState("inicio");
-  const [estadoBackend, setEstadoBackend] = useState("Chequeando...");
+  const [estadoBackend, setEstadoBackend] = useState("");
   const [pacientes, setPacientes] = useState([]);
   const [pacienteActivo, setPacienteActivo] = useState(null);
+  const [diagnostico, setDiagnostico] = useState("");
 
-  // ================= BACKEND STATUS =================
+  // ---------- BACKEND STATUS ----------
   useEffect(() => {
     fetch(API)
       .then(r => r.json())
@@ -17,14 +18,14 @@ export default function App() {
       .catch(() => setEstadoBackend("Backend OFF"));
   }, []);
 
-  // ================= FETCH PACIENTES =================
+  // ---------- CARGAR PACIENTES ----------
   const cargarPacientes = () => {
     fetch(`${API}/pacientes`)
       .then(r => r.json())
       .then(d => setPacientes(d));
   };
 
-  // ================= NUEVO PACIENTE =================
+  // ---------- NUEVO PACIENTE ----------
   function NuevoPaciente() {
     const [form, setForm] = useState({
       nombre: "",
@@ -42,7 +43,6 @@ export default function App() {
         body: JSON.stringify(form)
       });
 
-      alert("Paciente creado");
       setVista("pacientes");
       cargarPacientes();
     };
@@ -51,41 +51,42 @@ export default function App() {
       <>
         <h2>Nuevo paciente</h2>
 
-        <input placeholder="Nombre" onChange={e => setForm({ ...form, nombre: e.target.value })} />
-        <input placeholder="Apellido" onChange={e => setForm({ ...form, apellido: e.target.value })} />
-        <input placeholder="DNI" onChange={e => setForm({ ...form, dni: e.target.value })} />
-        <input type="number" placeholder="Edad" onChange={e => setForm({ ...form, edad: e.target.value })} />
-        <input type="number" placeholder="Altura (cm)" onChange={e => setForm({ ...form, altura: e.target.value })} />
-        <input type="number" placeholder="Peso (kg)" onChange={e => setForm({ ...form, peso: e.target.value })} />
+        {["nombre","apellido","dni","edad","altura","peso"].map(campo => (
+          <input
+            key={campo}
+            placeholder={campo.toUpperCase()}
+            type={campo === "edad" || campo === "peso" ? "number" : "text"}
+            onChange={e => setForm({ ...form, [campo]: e.target.value })}
+          />
+        ))}
 
-        <button className="primary" onClick={guardar}>Guardar paciente</button>
+        <button className="primary" onClick={guardar}>
+          Guardar paciente
+        </button>
       </>
     );
   }
 
-  // ================= LISTA PACIENTES =================
+  // ---------- LISTA ----------
   function ListaPacientes() {
-    useEffect(() => {
-      cargarPacientes();
-    }, []);
+    useEffect(() => { cargarPacientes(); }, []);
 
     return (
       <>
         <h2>Pacientes</h2>
 
-        {pacientes.length === 0 && <p>No hay pacientes cargados</p>}
-
-        <ul>
+        <ul className="lista">
           {pacientes.map(p => (
             <li
               key={p.id}
               onClick={() => {
                 setPacienteActivo(p);
+                setDiagnostico(p.diagnostico || "");
                 setVista("ficha");
               }}
             >
               <b>{p.apellido}, {p.nombre}</b><br />
-              DNI: {p.dni}
+              DNI {p.dni}
             </li>
           ))}
         </ul>
@@ -93,78 +94,96 @@ export default function App() {
     );
   }
 
-  // ================= FICHA PACIENTE =================
+  // ---------- IMC ----------
+  function calcularIMC(p) {
+    const h = p.altura;
+    return (p.peso / (h * h)).toFixed(1);
+  }
+
+  function rangoIMC(imc) {
+    if (imc < 18.5) return "Bajo peso";
+    if (imc < 25) return "Normal";
+    if (imc < 30) return "Sobrepeso";
+    return "Obesidad";
+  }
+
   function FichaPaciente() {
-    const [diagnostico, setDiagnostico] = useState(pacienteActivo?.diagnostico || "");
-
-    const guardarDiagnostico = async () => {
-      await fetch(`${API}/pacientes/${pacienteActivo.id}/diagnostico`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ diagnostico })
-      });
-
-      alert("Diagnóstico guardado");
-      cargarPacientes();
-    };
+    const imc = calcularIMC(pacienteActivo);
+    const rango = rangoIMC(imc);
 
     return (
-      <>
-        <h2>Ficha del paciente</h2>
+      <div className="ficha-layout">
 
+        {/* IZQUIERDA */}
         <div className="ficha">
+          <h2>Ficha del paciente</h2>
+
           <p><b>Nombre:</b> {pacienteActivo.nombre}</p>
           <p><b>Apellido:</b> {pacienteActivo.apellido}</p>
           <p><b>DNI:</b> {pacienteActivo.dni}</p>
           <p><b>Edad:</b> {pacienteActivo.edad}</p>
-          <p><b>Altura:</b> {pacienteActivo.altura} cm</p>
+          <p><b>Altura:</b> {pacienteActivo.altura} m</p>
           <p><b>Peso:</b> {pacienteActivo.peso} kg</p>
 
-          <h3>Diagnóstico</h3>
-          <textarea
-            rows="5"
-            placeholder="Escriba el diagnóstico del paciente..."
-            value={diagnostico}
-            onChange={e => setDiagnostico(e.target.value)}
-          />
+          {/* DIAGNÓSTICO */}
+          <div className="diagnostico-box">
+            <h3>Diagnóstico</h3>
 
-          <button className="primary" onClick={guardarDiagnostico}>
-            Guardar diagnóstico
+            <textarea
+              value={diagnostico}
+              placeholder="Escriba el diagnóstico del paciente..."
+              onChange={e => setDiagnostico(e.target.value)}
+            />
+
+            <button>Guardar diagnóstico</button>
+          </div>
+
+          <button onClick={() => setVista("pacientes")}>
+            ← Volver
           </button>
         </div>
 
-        <button onClick={() => setVista("pacientes")}>
-          ← Volver
-        </button>
-      </>
+        {/* DERECHA IMC */}
+        <div className="imc-card">
+          <h3>IMC</h3>
+
+          <div className="imc-valor">{imc}</div>
+          <div className="imc-rango">{rango}</div>
+
+          <div className="imc-bar">
+            <div
+              className="imc-indicador"
+              style={{ left: `${Math.min(imc * 3, 100)}%` }}
+            />
+          </div>
+
+          <small>Bajo | Normal | Sobrepeso | Obesidad</small>
+        </div>
+
+      </div>
     );
   }
 
-  // ================= RENDER =================
+  // ---------- RENDER ----------
   return (
     <div className="app-container">
       <h1>Nutri App</h1>
 
-      <div className="nav-buttons">
+      <div className="nav">
         <button onClick={() => setVista("inicio")}>Inicio</button>
         <button onClick={() => setVista("pacientes")}>Pacientes</button>
-        <button onClick={() => setVista("nuevo")}>Nuevo paciente</button>
+        <button onClick={() => setVista("nuevo")}>Nuevo</button>
       </div>
 
-      <hr />
-
       {vista === "inicio" && (
-        <>
-          <p>Estado del sistema:</p>
-          <span className={estadoBackend === "Nutri App OK" ? "status-ok" : "status-off"}>
-            {estadoBackend}
-          </span>
-        </>
+        <p className={estadoBackend === "Nutri App OK" ? "ok" : "off"}>
+          {estadoBackend}
+        </p>
       )}
 
       {vista === "pacientes" && <ListaPacientes />}
       {vista === "nuevo" && <NuevoPaciente />}
-      {vista === "ficha" && <FichaPaciente />}
+      {vista === "ficha" && pacienteActivo && <FichaPaciente />}
     </div>
   );
 }
