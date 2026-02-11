@@ -4,12 +4,32 @@ import "./App.css";
 const API = import.meta.env.VITE_API_URL;
 
 export default function App() {
+  // ---------------- ESTADOS GLOBALES ----------------
+  const [vista, setVista] = useState("pacientes");
   const [pacientes, setPacientes] = useState([]);
   const [pacienteActivo, setPacienteActivo] = useState(null);
   const [visitas, setVisitas] = useState([]);
-  const [vista, setVista] = useState("pacientes");
 
-  // ------------------ FETCH PACIENTES ------------------
+  // NUEVO PACIENTE (⬅️ FUERA de condicionales)
+  const [nuevoPaciente, setNuevoPaciente] = useState({
+    nombre: "",
+    apellido: "",
+    dni: "",
+    edad: "",
+    altura: "",
+    peso: ""
+  });
+
+  // NUEVA VISITA
+  const [visitaForm, setVisitaForm] = useState({
+    fecha: "",
+    peso: "",
+    altura: "",
+    cintura: "",
+    diagnostico: ""
+  });
+
+  // ---------------- FETCH PACIENTES ----------------
   const cargarPacientes = async () => {
     const res = await fetch(`${API}/pacientes`);
     const data = await res.json();
@@ -20,39 +40,64 @@ export default function App() {
     cargarPacientes();
   }, []);
 
-  // ------------------ SELECCIONAR PACIENTE ------------------
-  const seleccionarPaciente = async (paciente) => {
-    setPacienteActivo(paciente);
+  // ---------------- SELECCIONAR PACIENTE ----------------
+  const seleccionarPaciente = async (p) => {
+    setPacienteActivo(p);
     setVista("ficha");
 
-    const res = await fetch(`${API}/pacientes/${paciente.id}/visitas`);
+    const res = await fetch(`${API}/pacientes/${p.id}/visitas`);
     const data = await res.json();
     setVisitas(data);
   };
 
-  // ------------------ IMC ------------------
+  // ---------------- IMC ----------------
   const calcularIMC = (peso, altura) => {
     if (!peso || !altura) return null;
     return (peso / (altura * altura)).toFixed(1);
   };
 
-  const rangoIMC = (imc) => {
-    if (!imc) return "";
-    if (imc < 18.5) return "Bajo peso";
-    if (imc < 25) return "Normal";
-    if (imc < 30) return "Sobrepeso";
-    return "Obesidad";
+  const imcRango = (imc) => {
+    if (!imc) return { label: "Sin datos", color: "#94a3b8" };
+    if (imc < 18.5) return { label: "Bajo peso", color: "#38bdf8" };
+    if (imc < 25) return { label: "Normal", color: "#22c55e" };
+    if (imc < 30) return { label: "Sobrepeso", color: "#facc15" };
+    return { label: "Obesidad", color: "#ef4444" };
   };
 
-  // ------------------ NUEVA VISITA ------------------
-  const [visitaForm, setVisitaForm] = useState({
-    fecha: "",
-    peso: "",
-    altura: "",
-    cintura: "",
-    diagnostico: ""
-  });
+  // ---------------- GUARDAR PACIENTE ----------------
+  const guardarPaciente = async () => {
+    await fetch(`${API}/pacientes/${pacienteActivo.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pacienteActivo)
+    });
 
+    await cargarPacientes();
+    alert("Paciente actualizado");
+  };
+
+  // ---------------- GUARDAR NUEVO PACIENTE ----------------
+  const guardarNuevoPaciente = async () => {
+    await fetch(`${API}/pacientes`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(nuevoPaciente)
+    });
+
+    setNuevoPaciente({
+      nombre: "",
+      apellido: "",
+      dni: "",
+      edad: "",
+      altura: "",
+      peso: ""
+    });
+
+    setVista("pacientes");
+    cargarPacientes();
+  };
+
+  // ---------------- GUARDAR VISITA ----------------
   const guardarVisita = async () => {
     await fetch(`${API}/pacientes/${pacienteActivo.id}/visitas`, {
       method: "POST",
@@ -72,32 +117,23 @@ export default function App() {
     setVisitas(await res.json());
   };
 
-  // ------------------ ACTUALIZAR PACIENTE ------------------
-  const guardarPaciente = async () => {
-    await fetch(`${API}/pacientes/${pacienteActivo.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(pacienteActivo)
-    });
-
-    cargarPacientes();
-    alert("Paciente actualizado");
-  };
-
-  // ------------------ VISTAS ------------------
+  // =========================
+  // VISTA: LISTA PACIENTES
+  // =========================
   if (vista === "pacientes") {
     return (
       <div className="app-container">
         <h1>Nutri App</h1>
 
-        <button onClick={() => setVista("nuevo")} className="primary">
+        <button className="primary" onClick={() => setVista("nuevo")}>
           + Nuevo paciente
         </button>
 
         <ul className="lista-pacientes">
           {pacientes.map(p => (
             <li key={p.id} onClick={() => seleccionarPaciente(p)}>
-              {p.apellido}, {p.nombre}
+              <strong>{p.apellido}, {p.nombre}</strong><br />
+              DNI: {p.dni}
             </li>
           ))}
         </ul>
@@ -105,49 +141,42 @@ export default function App() {
     );
   }
 
+  // =========================
+  // VISTA: NUEVO PACIENTE
+  // =========================
   if (vista === "nuevo") {
-    const [form, setForm] = useState({
-      nombre: "",
-      apellido: "",
-      dni: "",
-      edad: "",
-      altura: "",
-      peso: ""
-    });
-
-    const guardar = async () => {
-      await fetch(`${API}/pacientes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
-      });
-      setVista("pacientes");
-      cargarPacientes();
-    };
-
     return (
       <div className="app-container">
         <h2>Nuevo paciente</h2>
 
-        {Object.keys(form).map(k => (
+        {Object.keys(nuevoPaciente).map(campo => (
           <input
-            key={k}
-            placeholder={k}
-            onChange={e => setForm({ ...form, [k]: e.target.value })}
+            key={campo}
+            placeholder={campo}
+            value={nuevoPaciente[campo]}
+            onChange={e =>
+              setNuevoPaciente({ ...nuevoPaciente, [campo]: e.target.value })
+            }
           />
         ))}
 
-        <button onClick={guardar} className="primary">Guardar</button>
-        <button onClick={() => setVista("pacientes")}>Volver</button>
+        <button className="primary" onClick={guardarNuevoPaciente}>
+          Guardar paciente
+        </button>
+
+        <button onClick={() => setVista("pacientes")}>
+          Cancelar
+        </button>
       </div>
     );
   }
 
-  // ------------------ FICHA ------------------
-  const ultimaVisita = visitas[0];
-  const imc = ultimaVisita
-    ? calcularIMC(ultimaVisita.peso, ultimaVisita.altura)
-    : null;
+  // =========================
+  // VISTA: FICHA PACIENTE
+  // =========================
+  const ultima = visitas[0];
+  const imc = ultima ? calcularIMC(ultima.peso, ultima.altura) : null;
+  const rango = imcRango(imc);
 
   return (
     <div className="app-container">
@@ -172,7 +201,9 @@ export default function App() {
             />
           ))}
 
-          <button onClick={guardarPaciente}>Guardar cambios</button>
+          <button onClick={guardarPaciente}>
+            Guardar cambios
+          </button>
         </div>
 
         {/* NUEVA VISITA */}
@@ -184,17 +215,17 @@ export default function App() {
             onChange={e => setVisitaForm({ ...visitaForm, fecha: e.target.value })}
           />
 
-          <input placeholder="Peso"
+          <input placeholder="Peso (kg)"
             value={visitaForm.peso}
             onChange={e => setVisitaForm({ ...visitaForm, peso: e.target.value })}
           />
 
-          <input placeholder="Altura"
+          <input placeholder="Altura (m)"
             value={visitaForm.altura}
             onChange={e => setVisitaForm({ ...visitaForm, altura: e.target.value })}
           />
 
-          <input placeholder="Cintura"
+          <input placeholder="Cintura (cm)"
             value={visitaForm.cintura}
             onChange={e => setVisitaForm({ ...visitaForm, cintura: e.target.value })}
           />
@@ -213,10 +244,15 @@ export default function App() {
         {/* IMC */}
         <div className="card imc">
           <h3>IMC</h3>
+
           {imc ? (
             <>
-              <div className="imc-numero">{imc}</div>
-              <div className="imc-rango">{rangoIMC(imc)}</div>
+              <div className="imc-numero" style={{ color: rango.color }}>
+                {imc}
+              </div>
+              <div className="imc-rango" style={{ color: rango.color }}>
+                {rango.label}
+              </div>
             </>
           ) : (
             <p>Sin datos</p>
@@ -227,6 +263,7 @@ export default function App() {
 
       {/* HISTORIAL */}
       <h3>Historial de visitas</h3>
+
       <table>
         <thead>
           <tr>
