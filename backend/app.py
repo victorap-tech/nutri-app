@@ -86,7 +86,10 @@ def crear_paciente():
         dni=data.get("dni"),
         edad=data.get("edad"),
         altura=data.get("altura"),
-        peso=data.get("peso")
+        peso=data.get("peso"),
+        cintura=data.get("cintura"),
+        fecha_visita=date.fromisoformat(data["fecha_visita"]) if data.get("fecha_visita") else None,
+        diagnostico=data.get("diagnostico")
     )
 
     db.session.add(paciente)
@@ -96,30 +99,22 @@ def crear_paciente():
 
 @app.route("/pacientes", methods=["GET"])
 def listar_pacientes():
-    buscar = request.args.get("buscar")
-
-    query = Paciente.query
-
-    if buscar:
-        query = query.filter(
-            (Paciente.nombre.ilike(f"%{buscar}%")) |
-            (Paciente.apellido.ilike(f"%{buscar}%")) |
-            (Paciente.dni.ilike(f"%{buscar}%"))
-        )
-
-    pacientes = query.all()
+    pacientes = Paciente.query.all()
 
     return jsonify([
-      {
-        "id": p.id,
-        "nombre": p.nombre,
-        "apellido": p.apellido,
-        "dni": p.dni,
-        "edad": p.edad,
-        "altura": p.altura,
-        "peso": p.peso,
-      }
-      for p in pacientes
+        {
+            "id": p.id,
+            "nombre": p.nombre,
+            "apellido": p.apellido,
+            "dni": p.dni,
+            "edad": p.edad,
+            "altura": p.altura,
+            "peso": p.peso,
+            "cintura": p.cintura,
+            "fecha_visita": p.fecha_visita.isoformat() if p.fecha_visita else None,
+            "diagnostico": p.diagnostico
+        }
+        for p in pacientes
     ])
 
 @app.route("/pacientes/<int:paciente_id>", methods=["PUT"])
