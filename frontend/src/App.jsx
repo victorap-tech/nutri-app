@@ -5,34 +5,26 @@ const API = import.meta.env.VITE_API_URL;
 
 export default function App() {
   const [vista, setVista] = useState("inicio");
-  const [estadoBackend, setEstadoBackend] = useState("");
+  const [estadoBackend, setEstadoBackend] = useState("Chequeando...");
   const [pacientes, setPacientes] = useState([]);
   const [pacienteActivo, setPacienteActivo] = useState(null);
 
-  // ---------- BACKEND STATUS ----------
+  // ================= BACKEND STATUS =================
   useEffect(() => {
     fetch(API)
-      .then(res => res.json())
-      .then(data => setEstadoBackend(data.status))
+      .then(r => r.json())
+      .then(d => setEstadoBackend(d.status))
       .catch(() => setEstadoBackend("Backend OFF"));
   }, []);
 
-  // ---------- CARGAR PACIENTES ----------
+  // ================= FETCH PACIENTES =================
   const cargarPacientes = () => {
     fetch(`${API}/pacientes`)
-      .then(res => res.json())
-      .then(data => setPacientes(data))
-      .catch(() => setPacientes([]));
+      .then(r => r.json())
+      .then(d => setPacientes(d));
   };
 
-  // recargar al entrar a la vista
-  useEffect(() => {
-    if (vista === "pacientes") {
-      cargarPacientes();
-    }
-  }, [vista]);
-
-  // ---------- NUEVO PACIENTE ----------
+  // ================= NUEVO PACIENTE =================
   function NuevoPaciente() {
     const [form, setForm] = useState({
       nombre: "",
@@ -47,16 +39,12 @@ export default function App() {
       await fetch(`${API}/pacientes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          edad: Number(form.edad),
-          altura: Number(form.altura),
-          peso: Number(form.peso)
-        })
+        body: JSON.stringify(form)
       });
 
-      alert("Paciente cargado correctamente");
+      alert("Paciente creado");
       setVista("pacientes");
+      cargarPacientes();
     };
 
     return (
@@ -75,21 +63,28 @@ export default function App() {
     );
   }
 
-  // ---------- LISTA ----------
+  // ================= LISTA PACIENTES =================
   function ListaPacientes() {
+    useEffect(() => {
+      cargarPacientes();
+    }, []);
+
     return (
       <>
         <h2>Pacientes</h2>
 
-        {pacientes.length === 0 && <p>No hay pacientes cargados.</p>}
+        {pacientes.length === 0 && <p>No hay pacientes cargados</p>}
 
-        <ul className="lista-pacientes">
+        <ul>
           {pacientes.map(p => (
-            <li key={p.id} onClick={() => {
-              setPacienteActivo(p);
-              setVista("ficha");
-            }}>
-              <strong>{p.apellido}, {p.nombre}</strong><br />
+            <li
+              key={p.id}
+              onClick={() => {
+                setPacienteActivo(p);
+                setVista("ficha");
+              }}
+            >
+              <b>{p.apellido}, {p.nombre}</b><br />
               DNI: {p.dni}
             </li>
           ))}
@@ -98,29 +93,54 @@ export default function App() {
     );
   }
 
-  // ---------- FICHA ----------
+  // ================= FICHA PACIENTE =================
   function FichaPaciente() {
-    if (!pacienteActivo) return null;
+    const [diagnostico, setDiagnostico] = useState(pacienteActivo?.diagnostico || "");
+
+    const guardarDiagnostico = async () => {
+      await fetch(`${API}/pacientes/${pacienteActivo.id}/diagnostico`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ diagnostico })
+      });
+
+      alert("Diagnóstico guardado");
+      cargarPacientes();
+    };
 
     return (
       <>
         <h2>Ficha del paciente</h2>
 
         <div className="ficha">
-          <p><b>Apellido:</b> {pacienteActivo.apellido}</p>
           <p><b>Nombre:</b> {pacienteActivo.nombre}</p>
+          <p><b>Apellido:</b> {pacienteActivo.apellido}</p>
           <p><b>DNI:</b> {pacienteActivo.dni}</p>
           <p><b>Edad:</b> {pacienteActivo.edad}</p>
           <p><b>Altura:</b> {pacienteActivo.altura} cm</p>
           <p><b>Peso:</b> {pacienteActivo.peso} kg</p>
+
+          <h3>Diagnóstico</h3>
+          <textarea
+            rows="5"
+            placeholder="Escriba el diagnóstico del paciente..."
+            value={diagnostico}
+            onChange={e => setDiagnostico(e.target.value)}
+          />
+
+          <button className="primary" onClick={guardarDiagnostico}>
+            Guardar diagnóstico
+          </button>
         </div>
 
-        <button onClick={() => setVista("pacientes")}>← Volver</button>
+        <button onClick={() => setVista("pacientes")}>
+          ← Volver
+        </button>
       </>
     );
   }
 
-  // ---------- RENDER ----------
+  // ================= RENDER =================
   return (
     <div className="app-container">
       <h1>Nutri App</h1>
