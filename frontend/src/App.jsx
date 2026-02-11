@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
-const API = import.meta.env.VITE_API_URL;
+const API = "https://nutri-app-production-175c.up.railway.app";
 
-export default function App() {
+function App() {
   const [pacientes, setPacientes] = useState([]);
-  const [pacienteActivo, setPacienteActivo] = useState(null);
+  const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null);
   const [visitas, setVisitas] = useState([]);
   const [mostrarNuevo, setMostrarNuevo] = useState(false);
 
-  const [nuevoPaciente, setNuevoPaciente] = useState({
+  const [formPaciente, setFormPaciente] = useState({
     nombre: "",
     apellido: "",
     dni: "",
@@ -19,7 +19,7 @@ export default function App() {
     cintura: ""
   });
 
-  const [nuevaVisita, setNuevaVisita] = useState({
+  const [formVisita, setFormVisita] = useState({
     fecha: "",
     peso: "",
     altura: "",
@@ -27,40 +27,57 @@ export default function App() {
     diagnostico: ""
   });
 
-  // ---------------- CARGAR PACIENTES ----------------
-  const cargarPacientes = async () => {
+  useEffect(() => {
+    fetchPacientes();
+  }, []);
+
+  const fetchPacientes = async () => {
     const res = await fetch(`${API}/pacientes`);
     const data = await res.json();
     setPacientes(data);
   };
 
-  // ---------------- CARGAR VISITAS ----------------
-  const cargarVisitas = async (id) => {
+  const fetchVisitas = async (id) => {
     const res = await fetch(`${API}/pacientes/${id}/visitas`);
     const data = await res.json();
     setVisitas(data);
   };
 
-  useEffect(() => {
-    cargarPacientes();
-  }, []);
+  const seleccionarPaciente = (p) => {
+    setPacienteSeleccionado(p);
+    fetchVisitas(p.id);
+  };
 
-  useEffect(() => {
-    if (pacienteActivo) {
-      cargarVisitas(pacienteActivo.id);
-    }
-  }, [pacienteActivo]);
+  const calcularIMC = (peso, altura) => {
+    if (!peso || !altura) return null;
+    return (peso / (altura * altura)).toFixed(2);
+  };
 
-  // ---------------- CREAR PACIENTE ----------------
+  const obtenerRangoIMC = (imc) => {
+    if (!imc) return "";
+    if (imc < 18.5) return "Bajo peso";
+    if (imc < 25) return "Normal";
+    if (imc < 30) return "Sobrepeso";
+    return "Obesidad";
+  };
+
+  const obtenerColorIMC = (imc) => {
+    if (!imc) return "#ccc";
+    if (imc < 18.5) return "#3b82f6";
+    if (imc < 25) return "#16a34a";
+    if (imc < 30) return "#f59e0b";
+    return "#dc2626";
+  };
+
   const guardarPaciente = async () => {
     await fetch(`${API}/pacientes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nuevoPaciente)
+      body: JSON.stringify(formPaciente)
     });
 
     setMostrarNuevo(false);
-    setNuevoPaciente({
+    setFormPaciente({
       nombre: "",
       apellido: "",
       dni: "",
@@ -70,18 +87,17 @@ export default function App() {
       cintura: ""
     });
 
-    cargarPacientes();
+    fetchPacientes();
   };
 
-  // ---------------- CREAR VISITA ----------------
   const guardarVisita = async () => {
-    await fetch(`${API}/pacientes/${pacienteActivo.id}/visitas`, {
+    await fetch(`${API}/pacientes/${pacienteSeleccionado.id}/visitas`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nuevaVisita)
+      body: JSON.stringify(formVisita)
     });
 
-    setNuevaVisita({
+    setFormVisita({
       fecha: "",
       peso: "",
       altura: "",
@@ -89,168 +105,176 @@ export default function App() {
       diagnostico: ""
     });
 
-    cargarVisitas(pacienteActivo.id);
+    fetchVisitas(pacienteSeleccionado.id);
   };
 
-  // ---------------- IMC ----------------
-  const pesoActual =
-    visitas.length > 0 ? visitas[0].peso : pacienteActivo?.peso;
+  if (mostrarNuevo) {
+    return (
+      <div className="container">
+        <div className="card-form">
+          <h2>Nuevo paciente</h2>
+          {Object.keys(formPaciente).map((campo) => (
+            <input
+              key={campo}
+              placeholder={campo}
+              value={formPaciente[campo]}
+              onChange={(e) =>
+                setFormPaciente({
+                  ...formPaciente,
+                  [campo]: e.target.value
+                })
+              }
+            />
+          ))}
+          <button className="btn-primary" onClick={guardarPaciente}>
+            Guardar paciente
+          </button>
+          <button className="btn-secondary" onClick={() => setMostrarNuevo(false)}>
+            Cancelar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  const alturaActual =
-    visitas.length > 0 && visitas[0].altura
-      ? visitas[0].altura
-      : pacienteActivo?.altura;
-
-  const cinturaActual =
-    visitas.length > 0 ? visitas[0].cintura : pacienteActivo?.cintura;
-
-  const imc =
-    pesoActual && alturaActual
-      ? (pesoActual / (alturaActual * alturaActual)).toFixed(2)
-      : null;
-
-  const getRangoIMC = (valor) => {
-    if (!valor) return { texto: "-", color: "#ccc" };
-    if (valor < 18.5) return { texto: "Bajo peso", color: "#3498db" };
-    if (valor < 25) return { texto: "Normal", color: "#2ecc71" };
-    if (valor < 30) return { texto: "Sobrepeso", color: "#f39c12" };
-    return { texto: "Obesidad", color: "#e74c3c" };
-  };
-
-  const rangoIMC = getRangoIMC(parseFloat(imc));
-
-  return (
-    <div className="layout">
-      
-      {/* ---------- COLUMNA PACIENTES ---------- */}
-      <div className="col pacientes">
-        <h2>Pacientes</h2>
-        <button className="primary" onClick={() => setMostrarNuevo(true)}>
+  if (!pacienteSeleccionado) {
+    return (
+      <div className="container">
+        <h1>Nutri App</h1>
+        <button className="btn-primary" onClick={() => setMostrarNuevo(true)}>
           + Nuevo paciente
         </button>
 
-        {pacientes.map((p) => (
-          <div
-            key={p.id}
-            className={`paciente-item ${
-              pacienteActivo?.id === p.id ? "activo" : ""
-            }`}
-            onClick={() => setPacienteActivo(p)}
-          >
-            {p.apellido}, {p.nombre}
-          </div>
-        ))}
-      </div>
-
-      {/* ---------- COLUMNA FICHA ---------- */}
-      <div className="col ficha">
-        {pacienteActivo && (
-          <>
-            <h2>
-              {pacienteActivo.apellido}, {pacienteActivo.nombre}
-            </h2>
-
-            <p>DNI: {pacienteActivo.dni}</p>
-            <p>Edad: {pacienteActivo.edad}</p>
-            <p>Altura: {alturaActual} m</p>
-            <p>Peso actual: {pesoActual} kg</p>
-            <p>Cintura actual: {cinturaActual || "-"} cm</p>
-
-            <h3>IMC: {imc}</h3>
-
-            <div className="barra-imc">
-              <div
-                className="progreso"
-                style={{
-                  width: `${Math.min(imc * 3, 100)}%`,
-                  backgroundColor: rangoIMC.color
-                }}
-              ></div>
+        <div className="lista">
+          {pacientes.map((p) => (
+            <div
+              key={p.id}
+              className="card-lista"
+              onClick={() => seleccionarPaciente(p)}
+            >
+              {p.apellido}, {p.nombre}
             </div>
-
-            <p style={{ color: rangoIMC.color }}>{rangoIMC.texto}</p>
-          </>
-        )}
-
-        {mostrarNuevo && (
-          <div className="card">
-            <h3>Nuevo paciente</h3>
-
-            {Object.keys(nuevoPaciente).map((campo) => (
-              <input
-                key={campo}
-                placeholder={campo}
-                value={nuevoPaciente[campo]}
-                onChange={(e) =>
-                  setNuevoPaciente({
-                    ...nuevoPaciente,
-                    [campo]: e.target.value
-                  })
-                }
-              />
-            ))}
-
-            <button className="primary" onClick={guardarPaciente}>
-              Guardar
-            </button>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
+    );
+  }
 
-      {/* ---------- COLUMNA HISTORIAL ---------- */}
-      <div className="col historial">
-        {pacienteActivo && (
-          <>
-            <h2>Historial</h2>
+  const ultimaVisita = visitas[0];
+  const imc = calcularIMC(
+    ultimaVisita?.peso,
+    ultimaVisita?.altura || pacienteSeleccionado.altura
+  );
 
+  const colorIMC = obtenerColorIMC(imc);
+
+  return (
+    <div className="container">
+      <h1>Nutri App</h1>
+
+      <div className="grid">
+        {/* FICHA */}
+        <div className="card">
+          <h2>
+            {pacienteSeleccionado.apellido}, {pacienteSeleccionado.nombre}
+          </h2>
+
+          <p><strong>DNI:</strong> {pacienteSeleccionado.dni}</p>
+          <p><strong>Edad:</strong> {pacienteSeleccionado.edad}</p>
+          <p><strong>Altura:</strong> {pacienteSeleccionado.altura} m</p>
+          <p><strong>Peso actual:</strong> {ultimaVisita?.peso || pacienteSeleccionado.peso} kg</p>
+          <p><strong>Cintura actual:</strong> {ultimaVisita?.cintura || "-"} cm</p>
+
+          {imc && (
+            <>
+              <p><strong>IMC:</strong> {imc}</p>
+
+              <div className="barra-imc">
+                <div
+                  className="barra-progreso"
+                  style={{
+                    width: `${Math.min((imc / 40) * 100, 100)}%`,
+                    backgroundColor: colorIMC
+                  }}
+                />
+              </div>
+
+              <p style={{ color: colorIMC }}>
+                {obtenerRangoIMC(imc)}
+              </p>
+            </>
+          )}
+
+          <button className="btn-secondary" onClick={() => setPacienteSeleccionado(null)}>
+            ← Volver
+          </button>
+        </div>
+
+        {/* HISTORIAL */}
+        <div className="card historial">
+          <h2>Historial de visitas</h2>
+
+          <div className="lista-visitas">
             {visitas.map((v) => (
-              <div key={v.id} className="card">
-                <strong>{v.fecha}</strong>
+              <div key={v.id} className="card-visita">
+                <h4>{v.fecha}</h4>
                 <p>Peso: {v.peso} kg</p>
-                <p>Cintura: {v.cintura} cm</p>
-                <p>Diagnóstico: {v.diagnostico}</p>
+                <p>Cintura: {v.cintura || "-"} cm</p>
+                <p>{v.diagnostico}</p>
               </div>
             ))}
+          </div>
 
-            <div className="card">
-              <h3>Nueva visita</h3>
+          <div className="nueva-visita">
+            <h3>Nueva visita</h3>
 
-              {Object.keys(nuevaVisita).map((campo) => (
-                campo !== "diagnostico" ? (
-                  <input
-                    key={campo}
-                    type={campo === "fecha" ? "date" : "number"}
-                    placeholder={campo}
-                    value={nuevaVisita[campo]}
-                    onChange={(e) =>
-                      setNuevaVisita({
-                        ...nuevaVisita,
-                        [campo]: e.target.value
-                      })
-                    }
-                  />
-                ) : (
-                  <textarea
-                    key={campo}
-                    placeholder="Diagnóstico"
-                    value={nuevaVisita.diagnostico}
-                    onChange={(e) =>
-                      setNuevaVisita({
-                        ...nuevaVisita,
-                        diagnostico: e.target.value
-                      })
-                    }
-                  />
-                )
-              ))}
+            <input
+              type="date"
+              value={formVisita.fecha}
+              onChange={(e) =>
+                setFormVisita({ ...formVisita, fecha: e.target.value })
+              }
+            />
+            <input
+              placeholder="peso"
+              value={formVisita.peso}
+              onChange={(e) =>
+                setFormVisita({ ...formVisita, peso: e.target.value })
+              }
+            />
+            <input
+              placeholder="altura"
+              value={formVisita.altura}
+              onChange={(e) =>
+                setFormVisita({ ...formVisita, altura: e.target.value })
+              }
+            />
+            <input
+              placeholder="cintura"
+              value={formVisita.cintura}
+              onChange={(e) =>
+                setFormVisita({ ...formVisita, cintura: e.target.value })
+              }
+            />
+            <textarea
+              placeholder="diagnóstico"
+              value={formVisita.diagnostico}
+              onChange={(e) =>
+                setFormVisita({
+                  ...formVisita,
+                  diagnostico: e.target.value
+                })
+              }
+            />
 
-              <button className="primary" onClick={guardarVisita}>
-                Guardar visita
-              </button>
-            </div>
-          </>
-        )}
+            <button className="btn-primary" onClick={guardarVisita}>
+              Guardar visita
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
+
+export default App;
