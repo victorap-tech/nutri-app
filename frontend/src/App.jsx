@@ -19,6 +19,23 @@ export default function App() {
   const [busqueda, setBusqueda] = useState("");
   const [visitas, setVisitas] = useState([]);
 
+  const [formPaciente, setFormPaciente] = useState({
+    nombre: "",
+    apellido: "",
+    dni: "",
+    edad: "",
+    altura: "",
+    peso: "",
+    cintura: "",
+    diagnostico: ""
+  });
+
+  const [formVisita, setFormVisita] = useState({
+    fecha: "",
+    peso: "",
+    cintura: ""
+  });
+
   useEffect(() => {
     cargarPacientes();
   }, []);
@@ -36,6 +53,50 @@ export default function App() {
     const res = await fetch(`${API_URL}/pacientes/${p.id}/visitas`);
     const data = await res.json();
     setVisitas(data);
+  };
+
+  const crearPaciente = async () => {
+    await fetch(`${API_URL}/pacientes`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formPaciente)
+    });
+
+    setMostrarNuevo(false);
+    setFormPaciente({
+      nombre: "",
+      apellido: "",
+      dni: "",
+      edad: "",
+      altura: "",
+      peso: "",
+      cintura: "",
+      diagnostico: ""
+    });
+
+    cargarPacientes();
+  };
+
+  const guardarCambiosPaciente = async () => {
+    await fetch(`${API_URL}/pacientes/${pacienteActual.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pacienteActual)
+    });
+
+    alert("Paciente actualizado");
+    cargarPacientes();
+  };
+
+  const crearVisita = async () => {
+    await fetch(`${API_URL}/pacientes/${pacienteActual.id}/visitas`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formVisita)
+    });
+
+    setFormVisita({ fecha: "", peso: "", cintura: "" });
+    seleccionarPaciente(pacienteActual);
   };
 
   const calcularIMC = () => {
@@ -67,7 +128,7 @@ export default function App() {
     <div className="container">
       <h1>Nutri App</h1>
 
-      {!pacienteActual && (
+      {!pacienteActual && !mostrarNuevo && (
         <>
           <div className="top-bar">
             <input
@@ -75,6 +136,12 @@ export default function App() {
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
             />
+            <button
+              className="btn-primary"
+              onClick={() => setMostrarNuevo(true)}
+            >
+              + Nuevo paciente
+            </button>
           </div>
 
           <div className="resultados">
@@ -91,10 +158,44 @@ export default function App() {
         </>
       )}
 
+      {mostrarNuevo && (
+        <div className="card">
+          <h2>Nuevo Paciente</h2>
+
+          <div className="grid-3">
+            {Object.keys(formPaciente).map((campo) => (
+              <div key={campo}>
+                <label>{campo}</label>
+                <input
+                  value={formPaciente[campo]}
+                  onChange={(e) =>
+                    setFormPaciente({
+                      ...formPaciente,
+                      [campo]: e.target.value
+                    })
+                  }
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="btn-row">
+            <button className="btn-primary" onClick={crearPaciente}>
+              Guardar
+            </button>
+            <button
+              className="btn-secondary"
+              onClick={() => setMostrarNuevo(false)}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
       {pacienteActual && (
         <>
-          {/* DASHBOARD */}
-          <div className="card dashboard">
+          <div className="card">
             <h2>
               {pacienteActual.nombre} {pacienteActual.apellido}
             </h2>
@@ -105,12 +206,10 @@ export default function App() {
                 <h3>{imc}</h3>
                 <small>{estadoIMC}</small>
               </div>
-
               <div className="metric">
-                <span>Peso actual</span>
+                <span>Peso</span>
                 <h3>{pacienteActual.peso} kg</h3>
               </div>
-
               <div className="metric">
                 <span>Cintura</span>
                 <h3>{pacienteActual.cintura || "-"} cm</h3>
@@ -118,9 +217,57 @@ export default function App() {
             </div>
           </div>
 
-          {/* GRAFICO */}
           <div className="card">
-            <h2>Evolución de Peso</h2>
+            <h3>Datos del Paciente</h3>
+
+            <div className="grid-3">
+              {["nombre", "apellido", "dni", "edad", "altura", "peso", "cintura"].map((campo) => (
+                <div key={campo}>
+                  <label>{campo}</label>
+                  <input
+                    value={pacienteActual[campo] || ""}
+                    onChange={(e) =>
+                      setPacienteActual({
+                        ...pacienteActual,
+                        [campo]: e.target.value
+                      })
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+
+            <label>Diagnóstico</label>
+            <textarea
+              rows="4"
+              value={pacienteActual.diagnostico || ""}
+              onChange={(e) =>
+                setPacienteActual({
+                  ...pacienteActual,
+                  diagnostico: e.target.value
+                })
+              }
+            />
+
+            <div className="btn-row">
+              <button
+                className="btn-primary"
+                onClick={guardarCambiosPaciente}
+              >
+                Guardar cambios
+              </button>
+
+              <button
+                className="btn-secondary"
+                onClick={() => setPacienteActual(null)}
+              >
+                ← Volver
+              </button>
+            </div>
+          </div>
+
+          <div className="card">
+            <h3>Evolución de Peso</h3>
 
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={visitas}>
@@ -138,9 +285,8 @@ export default function App() {
             </ResponsiveContainer>
           </div>
 
-          {/* HISTORIAL */}
           <div className="card">
-            <h2>Historial de Visitas</h2>
+            <h3>Historial</h3>
 
             <div className="tabla-scroll">
               <table>
@@ -162,14 +308,31 @@ export default function App() {
                 </tbody>
               </table>
             </div>
-          </div>
 
-          <button
-            className="btn-secondary"
-            onClick={() => setPacienteActual(null)}
-          >
-            ← Volver
-          </button>
+            <h4>Nueva visita</h4>
+
+            <div className="grid-3">
+              {["fecha", "peso", "cintura"].map((campo) => (
+                <div key={campo}>
+                  <label>{campo}</label>
+                  <input
+                    type={campo === "fecha" ? "date" : "text"}
+                    value={formVisita[campo]}
+                    onChange={(e) =>
+                      setFormVisita({
+                        ...formVisita,
+                        [campo]: e.target.value
+                      })
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+
+            <button className="btn-primary" onClick={crearVisita}>
+              Guardar visita
+            </button>
+          </div>
         </>
       )}
     </div>
