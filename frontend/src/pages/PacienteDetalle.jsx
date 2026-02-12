@@ -7,12 +7,12 @@ function PacienteDetalle() {
   const [paciente, setPaciente] = useState(null);
 
   useEffect(() => {
-   const API_URL = import.meta.env.VITE_API_URL;
+    const API_URL = import.meta.env.VITE_API_URL;
 
-   fetch(`${API_URL}/pacientes/${id}`)
-    .then(res => res.json())
-    .then(data => setPaciente(data))
-    .catch(err => console.error("Error cargando paciente:", err));
+    fetch(`${API_URL}/pacientes/${id}`)
+      .then((res) => res.json())
+      .then((data) => setPaciente(data))
+      .catch((err) => console.error("Error cargando paciente:", err));
   }, [id]);
 
   if (!paciente) return <div>Cargando...</div>;
@@ -21,44 +21,29 @@ function PacienteDetalle() {
 
   return (
     <div className="container">
-      <h1>Ficha del paciente</h1>
+      <h1>
+        {paciente.nombre} {paciente.apellido}
+      </h1>
 
       <div className="card">
-        <div className="grid-2">
-          <div>
-            <label>Nombre</label>
-            <input value={paciente.nombre} readOnly />
-          </div>
-          <div>
-            <label>Apellido</label>
-            <input value={paciente.apellido} readOnly />
-          </div>
-          <div>
-            <label>DNI</label>
-            <input value={paciente.dni} readOnly />
-          </div>
-          <div>
-            <label>Altura (m)</label>
-            <input value={paciente.altura} readOnly />
-          </div>
-        </div>
-
-        <div className="imc-box">
-          <h2>IMC: {imc}</h2>
-        </div>
-
-        <div className="diagnostico-box">
-          <label>Diagnóstico</label>
-          <textarea value={paciente.diagnostico || ""} readOnly />
-        </div>
-
-        <button
-          className="btn-primary"
-          onClick={() => navigate(`/paciente/${id}/evolucion`)}
-        >
-          Ver evolución →
-        </button>
+        <p><strong>DNI:</strong> {paciente.dni}</p>
+        <p><strong>Edad:</strong> {paciente.edad}</p>
+        <p><strong>Peso:</strong> {paciente.peso} kg</p>
+        <p><strong>Altura:</strong> {paciente.altura} m</p>
+        <p><strong>IMC:</strong> {imc}</p>
       </div>
+
+      <div className="card">
+        <h3>Diagnóstico</h3>
+        <p>{paciente.diagnostico || "Sin diagnóstico cargado"}</p>
+      </div>
+
+      <button
+        className="btn"
+        onClick={() => navigate(`/paciente/${id}/evolucion`)}
+      >
+        Ver evolución
+      </button>
     </div>
   );
 }
