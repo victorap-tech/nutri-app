@@ -1,74 +1,68 @@
-import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer
-} from "recharts";
+import { useNavigate, useParams } from "react-router-dom";
 
-function PacienteEvolucion() {
+const API_URL = process.env.REACT_APP_API_URL;
+
+function EvolucionPaciente() {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [visitas, setVisitas] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/pacientes/${id}/visitas`)
-      .then(res => res.json())
-      .then(data => setVisitas(data));
+    fetch(`${API_URL}/pacientes/${id}/visitas`)
+      .then((r) => r.json())
+      .then((data) => setVisitas(Array.isArray(data) ? data : []))
+      .catch((e) => console.error("Error visitas:", e))
+      .finally(() => setLoading(false));
   }, [id]);
 
   return (
-    <div className="container">
-      <h1>Evolución del paciente</h1>
+    <div className="page">
+      <div className="card-form" style={{ maxWidth: 1100 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+          <h2 style={{ margin: 0 }}>Evolución</h2>
+          <button className="btn-secondary" onClick={() => navigate(`/paciente/${id}`)}>
+            ⬅ Volver
+          </button>
+        </div>
 
-      <div className="card">
-        <h2>Gráfico de peso</h2>
+        <div style={{ height: 16 }} />
 
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={visitas}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="fecha" />
-            <YAxis />
-            <Tooltip />
-            <Line type="monotone" dataKey="peso" stroke="#2563eb" strokeWidth={3} />
-          </LineChart>
-        </ResponsiveContainer>
+        {loading ? (
+          <div>Cargando...</div>
+        ) : visitas.length === 0 ? (
+          <div className="card-soft">No hay visitas registradas.</div>
+        ) : (
+          <div className="card-soft">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Peso</th>
+                  <th>Altura</th>
+                  <th>Cintura</th>
+                  <th>Diagnóstico</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visitas.map((v) => (
+                  <tr key={v.id}>
+                    <td>{v.fecha}</td>
+                    <td>{v.peso ?? "-"}</td>
+                    <td>{v.altura ?? "-"}</td>
+                    <td>{v.cintura ?? "-"}</td>
+                    <td>{v.diagnostico ?? "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
-
-      <div className="card">
-        <h2>Historial</h2>
-        <table className="tabla">
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Peso (kg)</th>
-              <th>Cintura (cm)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visitas.map((v, i) => (
-              <tr key={i}>
-                <td>{v.fecha}</td>
-                <td>{v.peso}</td>
-                <td>{v.cintura}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <button
-        className="btn-secondary"
-        onClick={() => navigate(`/paciente/${id}`)}
-      >
-        ← Volver a ficha
-      </button>
     </div>
   );
 }
 
-export default PacienteEvolucion;
+export default EvolucionPaciente;
