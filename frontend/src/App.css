@@ -110,3 +110,66 @@
   padding: 40px;
   text-align: center;
 }
+.home-container {
+  max-width: 1000px;
+  margin: auto;
+  padding: 40px;
+}
+
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.input-busqueda {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  margin-bottom: 25px;
+  font-size: 15px;
+}
+
+.input-busqueda:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.lista-pacientes {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.paciente-item {
+  background: white;
+  padding: 18px 22px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.paciente-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+.paciente-nombre {
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.paciente-dni {
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.sin-resultados {
+  padding: 20px;
+  text-align: center;
+  color: #888;
+}
