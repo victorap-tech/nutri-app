@@ -8,6 +8,7 @@ export default function App() {
   const [pacienteActual, setPacienteActual] = useState(null);
   const [mostrarNuevo, setMostrarNuevo] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  const [visitas, setVisitas] = useState([]);
 
   const [formPaciente, setFormPaciente] = useState({
     nombre: "",
@@ -22,11 +23,8 @@ export default function App() {
   const [formVisita, setFormVisita] = useState({
     fecha: "",
     peso: "",
-    altura: "",
     cintura: ""
   });
-
-  const [visitas, setVisitas] = useState([]);
 
   useEffect(() => {
     cargarPacientes();
@@ -54,6 +52,7 @@ export default function App() {
       body: JSON.stringify(formPaciente)
     });
 
+    setMostrarNuevo(false);
     setFormPaciente({
       nombre: "",
       apellido: "",
@@ -64,7 +63,6 @@ export default function App() {
       cintura: ""
     });
 
-    setMostrarNuevo(false);
     cargarPacientes();
   };
 
@@ -78,7 +76,6 @@ export default function App() {
     setFormVisita({
       fecha: "",
       peso: "",
-      altura: "",
       cintura: ""
     });
 
@@ -89,14 +86,6 @@ export default function App() {
     if (!pacienteActual?.peso || !pacienteActual?.altura) return null;
     const imc = pacienteActual.peso / (pacienteActual.altura ** 2);
     return imc.toFixed(2);
-  };
-
-  const obtenerColorIMC = (imc) => {
-    if (!imc) return "#ccc";
-    if (imc < 18.5) return "#3b82f6";
-    if (imc < 25) return "#16a34a";
-    if (imc < 30) return "#f59e0b";
-    return "#dc2626";
   };
 
   const pacientesFiltrados = pacientes.filter((p) =>
@@ -112,18 +101,20 @@ export default function App() {
 
       <h1>Nutri App</h1>
 
-      {/* BARRA SUPERIOR */}
-      <div className="top-bar">
-        <input
-          type="text"
-          placeholder="Buscar paciente por nombre o DNI..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
-        <button className="btn-primary" onClick={() => setMostrarNuevo(true)}>
-          + Nuevo paciente
-        </button>
-      </div>
+      {/* BARRA SUPERIOR SOLO SI NO HAY PACIENTE */}
+      {!pacienteActual && (
+        <div className="top-bar">
+          <input
+            type="text"
+            placeholder="Buscar paciente por nombre o DNI..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+          <button className="btn-primary" onClick={() => setMostrarNuevo(true)}>
+            + Nuevo paciente
+          </button>
+        </div>
+      )}
 
       {/* LISTADO */}
       {!pacienteActual && !mostrarNuevo && (
@@ -148,44 +139,58 @@ export default function App() {
           <div className="grid-2">
             <div>
               <label>Nombre</label>
-              <input value={formPaciente.nombre}
-                onChange={(e)=>setFormPaciente({...formPaciente,nombre:e.target.value})}/>
+              <input
+                value={formPaciente.nombre}
+                onChange={(e)=>setFormPaciente({...formPaciente,nombre:e.target.value})}
+              />
             </div>
 
             <div>
               <label>Apellido</label>
-              <input value={formPaciente.apellido}
-                onChange={(e)=>setFormPaciente({...formPaciente,apellido:e.target.value})}/>
+              <input
+                value={formPaciente.apellido}
+                onChange={(e)=>setFormPaciente({...formPaciente,apellido:e.target.value})}
+              />
             </div>
 
             <div>
               <label>DNI</label>
-              <input value={formPaciente.dni}
-                onChange={(e)=>setFormPaciente({...formPaciente,dni:e.target.value})}/>
+              <input
+                value={formPaciente.dni}
+                onChange={(e)=>setFormPaciente({...formPaciente,dni:e.target.value})}
+              />
             </div>
 
             <div>
               <label>Edad</label>
-              <input value={formPaciente.edad}
-                onChange={(e)=>setFormPaciente({...formPaciente,edad:e.target.value})}/>
+              <input
+                value={formPaciente.edad}
+                onChange={(e)=>setFormPaciente({...formPaciente,edad:e.target.value})}
+              />
             </div>
 
             <div>
               <label>Altura (m)</label>
-              <input value={formPaciente.altura}
-                onChange={(e)=>setFormPaciente({...formPaciente,altura:e.target.value})}/>
+              <input
+                value={formPaciente.altura}
+                onChange={(e)=>setFormPaciente({...formPaciente,altura:e.target.value})}
+              />
             </div>
 
             <div>
               <label>Peso (kg)</label>
-              <input value={formPaciente.peso}
-                onChange={(e)=>setFormPaciente({...formPaciente,peso:e.target.value})}/>
+              <input
+                value={formPaciente.peso}
+                onChange={(e)=>setFormPaciente({...formPaciente,peso:e.target.value})}
+              />
             </div>
 
             <div>
               <label>Cintura (cm)</label>
-              <input value={formPaciente.cintura}
-                onChange={(e)=>setFormPaciente({...formPaciente,cintura:e.target.value})}/>
+              <input
+                value={formPaciente.cintura}
+                onChange={(e)=>setFormPaciente({...formPaciente,cintura:e.target.value})}
+              />
             </div>
           </div>
 
@@ -226,12 +231,21 @@ export default function App() {
             </div>
 
             {imc && (
-              <div className="imc-box">
-                IMC: {imc}
-                <div
-                  className="imc-bar"
-                  style={{ background: obtenerColorIMC(imc) }}
-                />
+              <div className="imc-card">
+                <div className="imc-header">
+                  <h3>IMC</h3>
+                  <span className="imc-value">{imc}</span>
+                </div>
+
+                <div className="imc-bar-wrapper">
+                  <div className="imc-bar-gradient"></div>
+                  <div
+                    className="imc-indicator"
+                    style={{
+                      left: `${Math.min((imc / 40) * 100, 100)}%`
+                    }}
+                  ></div>
+                </div>
               </div>
             )}
 
@@ -251,7 +265,6 @@ export default function App() {
                 <tr>
                   <th>Fecha</th>
                   <th>Peso (kg)</th>
-                  <th>Altura (m)</th>
                   <th>Cintura (cm)</th>
                 </tr>
               </thead>
@@ -260,7 +273,6 @@ export default function App() {
                   <tr key={v.id}>
                     <td>{v.fecha}</td>
                     <td>{v.peso}</td>
-                    <td>{v.altura}</td>
                     <td>{v.cintura}</td>
                   </tr>
                 ))}
@@ -269,19 +281,22 @@ export default function App() {
 
             <h3>Nueva visita</h3>
 
-            <div className="grid-4">
-              <input type="date"
+            <div className="grid-3">
+              <input
+                type="date"
                 value={formVisita.fecha}
-                onChange={(e)=>setFormVisita({...formVisita,fecha:e.target.value})}/>
-              <input placeholder="Peso"
+                onChange={(e)=>setFormVisita({...formVisita,fecha:e.target.value})}
+              />
+              <input
+                placeholder="Peso"
                 value={formVisita.peso}
-                onChange={(e)=>setFormVisita({...formVisita,peso:e.target.value})}/>
-              <input placeholder="Altura"
-                value={formVisita.altura}
-                onChange={(e)=>setFormVisita({...formVisita,altura:e.target.value})}/>
-              <input placeholder="Cintura"
+                onChange={(e)=>setFormVisita({...formVisita,peso:e.target.value})}
+              />
+              <input
+                placeholder="Cintura"
                 value={formVisita.cintura}
-                onChange={(e)=>setFormVisita({...formVisita,cintura:e.target.value})}/>
+                onChange={(e)=>setFormVisita({...formVisita,cintura:e.target.value})}
+              />
             </div>
 
             <button className="btn-primary" onClick={crearVisita}>
@@ -290,7 +305,6 @@ export default function App() {
           </div>
         </>
       )}
-
     </div>
   );
 }
