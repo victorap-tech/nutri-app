@@ -1,346 +1,112 @@
-/* ===========================
-   BASE / RESET
-=========================== */
-:root{
-  --bg: #f4f6f9;
-  --card: #ffffff;
-  --text: #1f2937;
-  --muted: #6b7280;
-
-  --primary: #2563eb;
-  --primary-600: #1d4ed8;
-
-  --border: #e5e7eb;
-  --shadow: 0 10px 24px rgba(0,0,0,.08);
-  --radius: 14px;
-
-  --container-max: 1180px;
+.detalle-container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 40px;
 }
 
-*{ box-sizing: border-box; }
-html, body{ height: 100%; }
-body{
-  margin:0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  color: var(--text);
-  background: var(--bg);
-}
-
-/* Links */
-a{ color: inherit; text-decoration: none; }
-
-/* ===========================
-   LAYOUT
-=========================== */
-.page{
-  width: 100%;
-  padding: 22px 16px;
-}
-
-.container{
-  width: 100%;
-  max-width: var(--container-max);
-  margin: 0 auto;
-}
-
-/* Header simple */
-.page-title{
-  font-size: 34px;
-  font-weight: 800;
-  margin: 4px 0 16px;
-}
-
-/* Card */
-.card{
-  width: 100%;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 18px;
-  margin-bottom: 16px;
-}
-
-.card-title{
-  font-size: 20px;
-  font-weight: 800;
-  margin: 0 0 12px;
-}
-
-/* ===========================
-   FORMS (labels + inputs)
-=========================== */
-.form-grid{
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 12px;
-  width: 100%;
-}
-
-.field{
-  grid-column: span 6;
+.detalle-header {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field.full{ grid-column: 1 / -1; }
-.field.third{ grid-column: span 4; }
-.field.quarter{ grid-column: span 3; }
-
-label{
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--muted);
-}
-
-input, textarea, select{
-  width: 100%;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px 12px;
-  font-size: 15px;
-  outline: none;
-  background: #fff;
-  transition: border .15s, box-shadow .15s;
-}
-
-textarea{
-  min-height: 90px;
-  resize: vertical;
-}
-
-input:focus, textarea:focus, select:focus{
-  border-color: rgba(37,99,235,.45);
-  box-shadow: 0 0 0 4px rgba(37,99,235,.12);
-}
-
-/* ===========================
-   BUTTONS (siempre visibles)
-=========================== */
-.btn{
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  padding: 10px 14px;
-  font-weight: 800;
-  font-size: 14px;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.btn-back {
+  background: #f1f5f9;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: transform .08s, background .15s, border .15s, opacity .15s;
-  user-select: none;
+  font-weight: 500;
 }
 
-.btn:active{ transform: translateY(1px); }
-
-.btn-primary{
-  background: var(--primary);
-  color: #fff;
-}
-.btn-primary:hover{ background: var(--primary-600); }
-
-.btn-outline{
-  background: #fff;
-  border-color: var(--border);
-  color: var(--text);
-}
-.btn-outline:hover{ background: #f8fafc; }
-
-.btn:disabled{
-  opacity: .55;
-  cursor: not-allowed;
+.btn-back:hover {
+  background: #e2e8f0;
 }
 
-/* Barra de acciones */
-.actions{
-  display:flex;
-  justify-content: space-between;
-  align-items:center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 12px;
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  margin-bottom: 30px;
 }
 
-/* ===========================
-   HOME SEARCH + LIST
-=========================== */
-.search{
-  width: 100%;
-  max-width: 720px;
-  margin: 10px 0 14px;
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 
-.list{
-  width: 100%;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow);
+.imc-card {
+  text-align: center;
 }
 
-.list-item{
-  padding: 12px 14px;
-  display:flex;
-  justify-content: space-between;
-  align-items:center;
-  gap: 10px;
-  border-bottom: 1px solid var(--border);
-}
-.list-item:last-child{ border-bottom: none; }
-
-.list-item:hover{
-  background: #f8fafc;
-}
-
-.list-item .meta{
-  color: var(--muted);
-  font-size: 13px;
-}
-
-/* ===========================
-   IMC CARD (más vistoso)
-=========================== */
-.imc-wrap{
-  display:flex;
-  align-items:flex-start;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.imc-big{
-  display:flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.imc-value{
-  font-size: 34px;
-  font-weight: 900;
-  letter-spacing: -0.5px;
-}
-
-.imc-label{
-  color: var(--muted);
+.imc-valor {
+  font-size: 48px;
   font-weight: 700;
-  font-size: 13px;
+  margin: 10px 0;
 }
 
-/* Barra IMC “estética” */
-.imc-bar{
-  width: 100%;
-  height: 14px;
-  border-radius: 999px;
-  background:
-    linear-gradient(90deg,
-      #22c55e 0%,
-      #22c55e 25%,
-      #eab308 25%,
-      #eab308 55%,
-      #f97316 55%,
-      #f97316 75%,
-      #ef4444 75%,
-      #ef4444 100%);
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(0,0,0,.06);
+.imc-badge {
+  padding: 8px 16px;
+  border-radius: 50px;
+  font-weight: 600;
+  display: inline-block;
 }
 
-/* marcador */
-.imc-marker{
-  position:absolute;
-  top: -6px;
-  width: 0;
-  height: 0;
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
-  border-bottom: 10px solid #111827;
-  transform: translateX(-50%);
-}
-.imc-marker::after{
-  content:"";
-  position:absolute;
-  left:-1px;
-  top: 10px;
-  width: 2px;
-  height: 18px;
-  background: #111827;
-  border-radius: 2px;
+.imc-bajo {
+  background: #fef3c7;
+  color: #92400e;
 }
 
-/* Etiquetas debajo */
-.imc-legend{
-  display:flex;
-  justify-content: space-between;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-  margin-top: 8px;
+.imc-normal {
+  background: #d1fae5;
+  color: #065f46;
 }
 
-/* ===========================
-   HISTORIAL (100% ancho)
-=========================== */
-.table{
-  width: 100%;
-  border-collapse: collapse;
-  border: 1px solid var(--border);
+.imc-sobrepeso {
+  background: #fde68a;
+  color: #92400e;
+}
+
+.imc-obesidad {
+  background: #fecaca;
+  color: #7f1d1d;
+}
+
+.diagnostico-card {
+  margin-bottom: 30px;
+}
+
+.btn-secundario {
+  margin-top: 15px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #e0f2fe;
+  cursor: pointer;
+}
+
+.btn-principal {
+  padding: 12px 28px;
   border-radius: 12px;
-  overflow: hidden;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.table th, .table td{
-  padding: 10px 12px;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-  font-size: 14px;
+.btn-principal:hover {
+  background: #1e40af;
 }
 
-.table th{
-  background: #f8fafc;
-  color: var(--muted);
-  font-weight: 900;
-  font-size: 12px;
-  letter-spacing: .4px;
-  text-transform: uppercase;
+.acciones {
+  text-align: right;
 }
 
-.table tr:last-child td{ border-bottom: none; }
-
-/* Nueva visita en una sola fila prolija */
-.new-visit{
-  display:flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  align-items: flex-end;
-}
-
-.new-visit .nv{
-  min-width: 160px;
-  flex: 1;
-}
-
-.new-visit .nv.small{
-  min-width: 130px;
-  flex: 0 1 180px;
-}
-
-.new-visit .nv-btn{
-  flex: 0 0 auto;
-}
-
-/* ===========================
-   RESPONSIVE
-=========================== */
-@media (max-width: 900px){
-  .field{ grid-column: 1 / -1; }
-  .page-title{ font-size: 28px; }
-}
-
-@media (max-width: 520px){
-  .card{ padding: 14px; }
-  .imc-value{ font-size: 28px; }
+.loading {
+  padding: 40px;
+  text-align: center;
 }
