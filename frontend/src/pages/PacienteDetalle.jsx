@@ -7,9 +7,12 @@ function PacienteDetalle() {
   const [paciente, setPaciente] = useState(null);
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/pacientes/${id}`)
-      .then(res => res.json())
-      .then(data => setPaciente(data));
+   const API_URL = import.meta.env.VITE_API_URL;
+
+   fetch(`${API_URL}/pacientes/${id}`)
+    .then(res => res.json())
+    .then(data => setPaciente(data))
+    .catch(err => console.error("Error cargando paciente:", err));
   }, [id]);
 
   if (!paciente) return <div>Cargando...</div>;
