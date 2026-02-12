@@ -1,41 +1,38 @@
-/* ========= RESET ========= */
-
-* {
-  box-sizing: border-box;
-}
+/* ========================= */
+/* BASE */
+/* ========================= */
 
 body {
   margin: 0;
-  font-family: "Segoe UI", Arial, sans-serif;
+  font-family: "Segoe UI", sans-serif;
   background: #f4f6f9;
-  color: #1f2937;
 }
-
-/* ========= CONTENEDOR ========= */
 
 .container {
   max-width: 1100px;
-  margin: 40px auto;
-  padding: 0 20px;
+  margin: auto;
+  padding: 30px;
 }
-
-/* ========= TITULOS ========= */
 
 h1 {
   margin-bottom: 30px;
-  font-size: 28px;
+  color: #2c3e50;
 }
 
 h2 {
   margin-bottom: 20px;
+  color: #34495e;
 }
 
 h3 {
-  margin-top: 30px;
+  margin-top: 25px;
   margin-bottom: 15px;
+  color: #34495e;
 }
 
-/* ========= BARRA SUPERIOR ========= */
+/* ========================= */
+/* BARRA SUPERIOR */
+/* ========================= */
 
 .top-bar {
   display: flex;
@@ -45,38 +42,48 @@ h3 {
 
 .top-bar input {
   flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
 
-/* ========= RESULTADOS ========= */
+/* ========================= */
+/* RESULTADOS BUSQUEDA */
+/* ========================= */
 
 .resultados {
   background: white;
-  border-radius: 10px;
-  padding: 15px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  overflow: hidden;
 }
 
 .resultado-item {
-  padding: 10px;
-  border-radius: 6px;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
 .resultado-item:hover {
-  background: #eef2ff;
+  background: #f0f8ff;
 }
 
-/* ========= TARJETAS ========= */
+/* ========================= */
+/* TARJETAS */
+/* ========================= */
 
 .card {
   background: white;
-  border-radius: 12px;
   padding: 25px;
-  margin-bottom: 25px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+  margin-bottom: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* ========= GRID ========= */
+/* ========================= */
+/* GRID */
+/* ========================= */
 
 .grid-2 {
   display: grid;
@@ -84,122 +91,135 @@ h3 {
   gap: 20px;
 }
 
-.grid-4 {
+.grid-3 {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 15px;
+  margin-bottom: 20px;
 }
-
-/* ========= INPUTS ========= */
 
 label {
   display: block;
   font-size: 13px;
-  margin-bottom: 6px;
-  font-weight: 500;
-  color: #374151;
+  margin-bottom: 5px;
+  color: #555;
 }
 
 input {
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
   font-size: 14px;
-  transition: all 0.2s ease;
 }
 
-input:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
-}
-
-/* ========= BOTONES ========= */
-
-button {
-  padding: 10px 18px;
-  border-radius: 8px;
-  border: none;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
+/* ========================= */
+/* BOTONES */
+/* ========================= */
 
 .btn-primary {
-  background: #2563eb;
+  background: #2ecc71;
   color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
 }
 
 .btn-primary:hover {
-  background: #1d4ed8;
+  background: #27ae60;
 }
 
 .btn-secondary {
-  background: #e5e7eb;
-  color: #111827;
+  background: #bdc3c7;
+  color: #2c3e50;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: 0.2s;
 }
 
 .btn-secondary:hover {
-  background: #d1d5db;
+  background: #95a5a6;
 }
 
 .btn-row {
   margin-top: 20px;
-  display: flex;
-  gap: 10px;
 }
 
-/* ========= TABLA ========= */
+/* ========================= */
+/* IMC PRO */
+/* ========================= */
+
+.imc-card {
+  margin-top: 25px;
+}
+
+.imc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.imc-value {
+  font-size: 22px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.imc-bar-wrapper {
+  position: relative;
+  height: 14px;
+  margin-top: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.imc-bar-gradient {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    #3498db 0%,
+    #2ecc71 30%,
+    #f39c12 60%,
+    #e74c3c 100%
+  );
+}
+
+.imc-indicator {
+  position: absolute;
+  top: -4px;
+  width: 3px;
+  height: 22px;
+  background: black;
+}
+
+/* ========================= */
+/* TABLA HISTORIAL */
+/* ========================= */
 
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px;
+  margin-bottom: 25px;
 }
 
-th {
-  text-align: left;
-  font-weight: 600;
-  padding: 12px 8px;
-  border-bottom: 2px solid #e5e7eb;
-  font-size: 14px;
+thead {
+  background: #2c3e50;
+  color: white;
 }
 
-td {
-  padding: 10px 8px;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 14px;
+th, td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
 }
 
-/* ========= IMC ========= */
-
-.imc-box {
-  margin-top: 20px;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.imc-bar {
-  margin-top: 10px;
-  height: 8px;
-  width: 100%;
-  border-radius: 10px;
-  background: #ccc;
-}
-
-/* ========= RESPONSIVE ========= */
-
-@media (max-width: 900px) {
-  .grid-2 {
-    grid-template-columns: 1fr;
-  }
-
-  .grid-4 {
-    grid-template-columns: 1fr;
-  }
-
-  .top-bar {
-    flex-direction: column;
-  }
+tbody tr:hover {
+  background: #f2f2f2;
 }
