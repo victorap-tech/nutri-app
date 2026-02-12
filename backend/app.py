@@ -201,6 +201,23 @@ def listar_visitas(paciente_id):
         }
         for v in visitas
     ])
+
+@app.route("/pacientes/<int:paciente_id>", methods=["GET"])
+def obtener_paciente(paciente_id):
+    p = Paciente.query.get_or_404(paciente_id)
+
+    return jsonify({
+        "id": p.id,
+        "nombre": p.nombre,
+        "apellido": p.apellido,
+        "dni": p.dni,
+        "edad": p.edad,
+        "altura": p.altura,
+        "peso": p.peso,
+        "cintura": p.cintura,
+        "fecha_visita": p.fecha_visita.isoformat() if p.fecha_visita else None,
+        "diagnostico": p.diagnostico
+    })
 # ---------------- PESO ----------------
 
 @app.route("/pacientes/<int:paciente_id>/peso", methods=["POST"])
