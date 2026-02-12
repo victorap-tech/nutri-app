@@ -9,7 +9,7 @@ function PacienteDetalle() {
   useEffect(() => {
     const API_URL = import.meta.env.VITE_API_URL;
 
-    fetch(`${API_URL}/api/pacientes/${id}`)
+    fetch(`${API_URL}/pacientes/${id}`)
       .then((res) => res.json())
       .then((data) => setPaciente(data))
       .catch((err) => console.error("Error cargando paciente:", err));
