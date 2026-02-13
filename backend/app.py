@@ -362,6 +362,7 @@ def agregar_alimento_plan(plan_id):
         plan_id=plan_id,
         alimento_id=data["alimento_id"],
         comida=data["comida"]
+        cantidad=data.get("cantidad")
     )
 
     db.session.add(pa)
