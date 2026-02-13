@@ -288,6 +288,24 @@ def listar_laboratorio(paciente_id):
         }
         for l in labs
     ])
+
+@app.route("/laboratorio/<int:lab_id>", methods=["PUT"])
+def actualizar_laboratorio(lab_id):
+    data = request.json
+    lab = Laboratorio.query.get_or_404(lab_id)
+
+    lab.fecha = date.fromisoformat(data["fecha"])
+    lab.glucosa = data.get("glucosa")
+    lab.colesterol_total = data.get("colesterol_total")
+    lab.hdl = data.get("hdl")
+    lab.ldl = data.get("ldl")
+    lab.trigliceridos = data.get("trigliceridos")
+    lab.tsh = data.get("tsh")
+    lab.observaciones = data.get("observaciones")
+
+    db.session.commit()
+
+    return {"status": "laboratorio actualizado"}
 # ---------------- ALIMENTOS ----------------
 
 @app.route("/alimentos", methods=["POST"])
