@@ -236,6 +236,8 @@ def eliminar_visita(visita_id):
 def obtener_paciente(paciente_id):
     p = Paciente.query.get_or_404(paciente_id)
 
+    imc, rango = calcular_imc(p.peso, p.altura)
+
     return jsonify({
         "id": p.id,
         "nombre": p.nombre,
@@ -246,7 +248,9 @@ def obtener_paciente(paciente_id):
         "peso": p.peso,
         "cintura": p.cintura,
         "fecha_visita": p.fecha_visita.isoformat() if p.fecha_visita else None,
-        "diagnostico": p.diagnostico
+        "diagnostico": p.diagnostico,
+        "imc": imc,
+        "rango_imc": rango
     })
 # ---------------- PESO ----------------
 
