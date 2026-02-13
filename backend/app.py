@@ -417,7 +417,7 @@ def agregar_alimento_plan(plan_id):
     pa = PlanAlimento(
         plan_id=plan_id,
         alimento_id=data["alimento_id"],
-        comida=data["comida"]
+        comida=data["comida"],
         cantidad=data.get("cantidad")
     )
 
