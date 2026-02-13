@@ -1,46 +1,76 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { api } from "../api";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { api } from "../api/api";
 
 export default function Home() {
   const [pacientes, setPacientes] = useState([]);
-  const [busqueda, setBusqueda] = useState("");
-  const navigate = useNavigate();
+  const [q, setQ] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+
+  async function cargar() {
+    setErr("");
+    setLoading(true);
+    try {
+      const data = q.trim()
+        ? await api.buscarPacientes(q.trim())
+        : await api.listarPacientes();
+      setPacientes(data);
+    } catch (e) {
+      setErr(String(e.message || e));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    api.getPacientes().then(setPacientes);
+    cargar();
+    // eslint-disable-next-line
   }, []);
 
-  const filtrados = pacientes.filter(p =>
-    `${p.nombre} ${p.apellido}`.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const title = useMemo(() => (q.trim() ? "Resultados" : "Pacientes"), [q]);
 
   return (
     <div className="container">
-      <div className="header">
-        <h1>Pacientes</h1>
-        <button onClick={() => navigate("/nuevo")} className="btn-primary">
-          Nuevo Paciente
+      <div className="row-between">
+        <h1>{title}</h1>
+
+        <Link className="btn primary" to="/pacientes/nuevo">
+          + Nuevo paciente
+        </Link>
+      </div>
+
+      <div className="searchbar">
+        <input
+          placeholder="Buscar por nombre, apellido o DNI..."
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && cargar()}
+        />
+        <button className="btn" onClick={cargar}>Buscar</button>
+        <button className="btn ghost" onClick={() => { setQ(""); setTimeout(cargar, 0); }}>
+          Limpiar
         </button>
       </div>
 
-      <input
-        placeholder="Buscar paciente..."
-        value={busqueda}
-        onChange={(e) => setBusqueda(e.target.value)}
-        className="search"
-      />
+      {err && <div className="alert error">{err}</div>}
+      {loading && <div className="muted">Cargando...</div>}
 
       <div className="list">
-        {filtrados.map((p) => (
-          <div
-            key={p.id}
-            className="card clickable"
-            onClick={() => navigate(`/paciente/${p.id}`)}
-          >
-            {p.nombre} {p.apellido}
-          </div>
+        {pacientes.map((p) => (
+          <Link key={p.id} className="list-item" to={`/pacientes/${p.id}`}>
+            <div className="list-title">
+              {p.apellido ? `${p.apellido}, ${p.nombre}` : p.nombre}
+            </div>
+            <div className="list-sub">
+              DNI: {p.dni ?? "—"} · Edad: {p.edad ?? "—"} · Peso: {p.peso ?? "—"}
+            </div>
+          </Link>
         ))}
+
+        {!loading && pacientes.length === 0 && (
+          <div className="muted">No hay pacientes.</div>
+        )}
       </div>
     </div>
   );
