@@ -443,16 +443,19 @@ def ver_plan_actual(paciente_id):
     items = PlanAlimento.query.filter_by(plan_id=plan.id).all()
 
     return {
-        "plan_id": plan.id,
-        "fecha": plan.fecha.isoformat(),
-        "alimentos": [
-            {
-                "nombre": i.alimento.nombre,
-                "categoria": i.alimento.categoria,
-                "comida": i.comida
-            }
-            for i in items
-        ]
+      "plan_id": plan.id,
+      "fecha": plan.fecha.isoformat(),
+      "alimentos": [
+        {
+            "item_id": i.id,
+            "alimento_id": i.alimento_id,
+            "nombre": i.alimento.nombre,
+            "categoria": i.alimento.categoria,
+            "comida": i.comida,
+            "cantidad": i.cantidad
+        }
+        for i in items
+      ]
     }
 
 # ---------------- PDF ----------------
