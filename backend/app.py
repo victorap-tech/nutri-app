@@ -337,6 +337,13 @@ def listar_alimentos():
         }
         for a in alimentos
     ])
+
+@app.route("/plan_item/<int:item_id>", methods=["DELETE"])
+def eliminar_item_plan(item_id):
+    item = PlanAlimento.query.get_or_404(item_id)
+    db.session.delete(item)
+    db.session.commit()
+    return {"status": "item eliminado"}
 # ---------------- PLANES ----------------
 
 @app.route("/pacientes/<int:paciente_id>/plan", methods=["POST"])
