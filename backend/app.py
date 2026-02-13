@@ -203,6 +203,21 @@ def listar_visitas(paciente_id):
         for v in visitas
     ])
 
+@app.route("/visitas/<int:visita_id>", methods=["PUT"])
+def actualizar_visita(visita_id):
+    data = request.json
+    visita = Visita.query.get_or_404(visita_id)
+
+    visita.fecha = date.fromisoformat(data["fecha"])
+    visita.peso = to_float(data.get("peso"))
+    visita.altura = to_float(data.get("altura"))
+    visita.cintura = to_float(data.get("cintura"))
+    visita.diagnostico = data.get("diagnostico")
+
+    db.session.commit()
+
+    return {"status": "visita actualizada"}
+
 @app.route("/pacientes/<int:paciente_id>", methods=["GET"])
 def obtener_paciente(paciente_id):
     p = Paciente.query.get_or_404(paciente_id)
