@@ -10,6 +10,7 @@ from plan_alimento import PlanAlimento
 from flask import send_file
 from pdf import generar_pdf_plan
 from visita import Visita
+from laboratorio import Laboratorio
 import os
 
 app = Flask(__name__)
@@ -246,7 +247,26 @@ def historial_peso(paciente_id):
         }
         for p in pesos
     ])
+@app.route("/pacientes/<int:paciente_id>/laboratorio", methods=["POST"])
+def crear_laboratorio(paciente_id):
+    data = request.json
 
+    lab = Laboratorio(
+        paciente_id=paciente_id,
+        fecha=date.fromisoformat(data["fecha"]),
+        glucosa=data.get("glucosa"),
+        colesterol_total=data.get("colesterol_total"),
+        hdl=data.get("hdl"),
+        ldl=data.get("ldl"),
+        trigliceridos=data.get("trigliceridos"),
+        tsh=data.get("tsh"),
+        observaciones=data.get("observaciones")
+    )
+
+    db.session.add(lab)
+    db.session.commit()
+
+    return {"status": "laboratorio creado"}, 201
 # ---------------- ALIMENTOS ----------------
 
 @app.route("/alimentos", methods=["POST"])
