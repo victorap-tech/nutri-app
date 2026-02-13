@@ -410,9 +410,22 @@ def desactivar_alimento(alimento_id):
 def crear_plan(paciente_id):
     data = request.json
 
+    # Desactivar planes activos anteriores
+    planes_anteriores = PlanAlimentario.query.filter_by(
+        paciente_id=paciente_id,
+        activo=True
+    ).all()
+
+    for p in planes_anteriores:
+        p.activo = False
+
+    db.session.commit()
+
+    # Crear nuevo plan activo
     plan = PlanAlimentario(
         paciente_id=paciente_id,
-        fecha=data["fecha"]
+        fecha=date.fromisoformat(data["fecha"]),
+        activo=True
     )
 
     db.session.add(plan)
