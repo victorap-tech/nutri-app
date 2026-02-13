@@ -218,6 +218,13 @@ def actualizar_visita(visita_id):
 
     return {"status": "visita actualizada"}
 
+@app.route("/visitas/<int:visita_id>", methods=["DELETE"])
+def eliminar_visita(visita_id):
+    visita = Visita.query.get_or_404(visita_id)
+    db.session.delete(visita)
+    db.session.commit()
+    return {"status": "visita eliminada"}
+
 @app.route("/pacientes/<int:paciente_id>", methods=["GET"])
 def obtener_paciente(paciente_id):
     p = Paciente.query.get_or_404(paciente_id)
