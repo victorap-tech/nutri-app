@@ -464,7 +464,19 @@ def ver_plan_actual(paciente_id):
         for i in items
       ]
     }
+@app.route("/pacientes/<int:paciente_id>/planes", methods=["GET"])
+def listar_planes(paciente_id):
+    planes = PlanAlimentario.query.filter_by(
+        paciente_id=paciente_id
+    ).order_by(PlanAlimentario.fecha.desc()).all()
 
+    return jsonify([
+        {
+            "id": p.id,
+            "fecha": p.fecha.isoformat()
+        }
+        for p in planes
+    ])
 # ---------------- PDF ----------------
 
 @app.route("/pacientes/<int:paciente_id>/plan/pdf", methods=["GET"])
