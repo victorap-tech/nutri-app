@@ -158,6 +158,13 @@ def buscar_paciente():
         } for p in pacientes
     ])
 
+@app.route("/pacientes/<int:paciente_id>", methods=["DELETE"])
+def eliminar_paciente(paciente_id):
+    paciente = Paciente.query.get_or_404(paciente_id)
+    db.session.delete(paciente)
+    db.session.commit()
+    return {"status": "paciente eliminado"}
+
 @app.route("/pacientes/<int:paciente_id>/visitas", methods=["POST"])
 def crear_visita(paciente_id):
     data = request.json
