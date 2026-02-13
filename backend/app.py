@@ -386,6 +386,13 @@ def actualizar_alimento(alimento_id):
     db.session.commit()
 
     return {"status": "alimento actualizado"}
+
+@app.route("/alimentos/<int:alimento_id>", methods=["DELETE"])
+def desactivar_alimento(alimento_id):
+    alimento = Alimento.query.get_or_404(alimento_id)
+    alimento.activo = False
+    db.session.commit()
+    return {"status": "alimento desactivado"}
 # ---------------- PLANES ----------------
 
 @app.route("/pacientes/<int:paciente_id>/plan", methods=["POST"])
