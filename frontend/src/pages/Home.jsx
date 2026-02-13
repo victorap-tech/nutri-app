@@ -1,75 +1,67 @@
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function Home() {
-  const [pacientes, setPacientes] = useState([]);
+const API = import.meta.env.VITE_API_URL;
+
+export default function Home() {
   const [busqueda, setBusqueda] = useState("");
+  const [resultados, setResultados] = useState([]);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetch("/pacientes")
-      .then(res => res.json())
-      .then(data => setPacientes(data));
-  }, []);
+  const buscar = async (valor) => {
+    setBusqueda(valor);
 
-  const pacientesFiltrados = pacientes.filter(p =>
-    (p.nombre + " " + p.apellido + " " + p.dni)
-      .toLowerCase()
-      .includes(busqueda.toLowerCase())
-  );
+    if (!valor.trim()) {
+      setResultados([]);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API}/pacientes/buscar?q=${valor}`);
+      const data = await res.json();
+      setResultados(data);
+    } catch (err) {
+      console.error("Error buscando paciente:", err);
+    }
+  };
 
   return (
-    <div className="container">
+    <div className="page-container">
       <h2>Pacientes</h2>
 
-      <button onClick={() => navigate("/nuevo")}>
+      <button
+        className="btn-primary"
+        onClick={() => navigate("/nuevo")}
+      >
         + Nuevo paciente
       </button>
 
-      <div className="search-bar">
-        <input
-          placeholder="Buscar paciente..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
-      </div>
+      <input
+        type="text"
+        placeholder="Buscar paciente..."
+        value={busqueda}
+        onChange={(e) => buscar(e.target.value)}
+        className="input-search"
+      />
 
-      <div className="grid">
-        {pacientesFiltrados.map(p => (
-          <div className="card" key={p.id}>
-            <div className="card-title">
-              {p.nombre} {p.apellido}
-            </div>
+      <div className="resultados">
+        {resultados.length === 0 && busqueda && (
+          <p className="sin-resultados">Sin resultados</p>
+        )}
 
-            <div className="card-info">
-              DNI: {p.dni} <br />
-              Edad: {p.edad} <br />
-              Peso actual: {p.peso} kg
-            </div>
-
-            <div className="card-actions">
-              <button onClick={() => navigate(`/pacientes/${p.id}`)}>
-                Ver ficha
-              </button>
-
-              <button
-                className="danger"
-                onClick={() => {
-                  fetch(`/pacientes/${p.id}`, {
-                    method: "DELETE"
-                  }).then(() =>
-                    setPacientes(pacientes.filter(x => x.id !== p.id))
-                  );
-                }}
-              >
-                Eliminar
-              </button>
-            </div>
+        {resultados.map((p) => (
+          <div
+            key={p.id}
+            className="card-paciente"
+            onClick={() => navigate(`/pacientes/${p.id}`)}
+          >
+            <strong>{p.nombre} {p.apellido}</strong>
+            <span>DNI: {p.dni}</span>
+            <span>Edad: {p.edad}</span>
+            <span>Peso: {p.peso} kg</span>
           </div>
         ))}
       </div>
     </div>
   );
 }
-
-export default Home;
