@@ -1,31 +1,19 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import NuevoPaciente from "./pages/NuevoPaciente";
 import PacienteDetalle from "./pages/PacienteDetalle";
 import PacienteEvolucion from "./pages/PacienteEvolucion";
+import "./styles.css";
 
-function App() {
+export default function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
-        {/* Home */}
         <Route path="/" element={<Home />} />
-
-        {/* Nuevo paciente */}
         <Route path="/nuevo" element={<NuevoPaciente />} />
-
-        {/* Detalle paciente */}
         <Route path="/paciente/:id" element={<PacienteDetalle />} />
-
-        {/* Evolución paciente */}
-        <Route
-          path="/paciente/:id/evolucion"
-          element={<PacienteEvolucion />}
-        />
+        <Route path="/paciente/:id/evolucion" element={<PacienteEvolucion />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
-
-export default App;
