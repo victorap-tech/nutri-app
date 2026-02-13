@@ -339,6 +339,13 @@ def actualizar_laboratorio(lab_id):
     db.session.commit()
 
     return {"status": "laboratorio actualizado"}
+
+@app.route("/laboratorio/<int:lab_id>", methods=["DELETE"])
+def eliminar_laboratorio(lab_id):
+    lab = Laboratorio.query.get_or_404(lab_id)
+    db.session.delete(lab)
+    db.session.commit()
+    return {"status": "laboratorio eliminado"}
 # ---------------- ALIMENTOS ----------------
 
 @app.route("/alimentos", methods=["POST"])
