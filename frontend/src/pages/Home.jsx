@@ -1,72 +1,47 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../api";
 
-function Home() {
+export default function Home() {
   const [pacientes, setPacientes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const API_URL = import.meta.env.VITE_API_URL;
-
-    fetch(`${API_URL}/pacientes`)
-      .then((res) => res.json())
-      .then((data) => setPacientes(data))
-      .catch((err) => console.error("Error cargando pacientes:", err));
+    api.getPacientes().then(setPacientes);
   }, []);
 
-  const pacientesFiltrados = pacientes.filter((p) =>
-    `${p.nombre} ${p.apellido} ${p.dni}`
-      .toLowerCase()
-      .includes(busqueda.toLowerCase())
+  const filtrados = pacientes.filter(p =>
+    `${p.nombre} ${p.apellido}`.toLowerCase().includes(busqueda.toLowerCase())
   );
 
   return (
-    <div className="home-container">
-
-      <div className="home-header">
+    <div className="container">
+      <div className="header">
         <h1>Pacientes</h1>
-        <button
-          className="btn-principal"
-          onClick={() => navigate("/nuevo")}
-        >
-          + Nuevo Paciente
+        <button onClick={() => navigate("/nuevo")} className="btn-primary">
+          Nuevo Paciente
         </button>
       </div>
 
       <input
-        type="text"
-        placeholder="Buscar por nombre o DNI..."
-        className="input-busqueda"
+        placeholder="Buscar paciente..."
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
+        className="search"
       />
 
-      <div className="lista-pacientes">
-        {pacientesFiltrados.length === 0 && (
-          <div className="sin-resultados">
-            No se encontraron pacientes
-          </div>
-        )}
-
-        {pacientesFiltrados.map((p) => (
+      <div className="list">
+        {filtrados.map((p) => (
           <div
             key={p.id}
-            className="paciente-item"
+            className="card clickable"
             onClick={() => navigate(`/paciente/${p.id}`)}
           >
-            <div className="paciente-nombre">
-              {p.nombre} {p.apellido}
-            </div>
-            <div className="paciente-dni">
-              DNI: {p.dni}
-            </div>
+            {p.nombre} {p.apellido}
           </div>
         ))}
       </div>
-
     </div>
   );
 }
-
-export default Home;
