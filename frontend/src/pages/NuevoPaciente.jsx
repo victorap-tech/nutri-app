@@ -1,104 +1,38 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../api";
 
-const API_URL = process.env.REACT_APP_API_URL;
-
-function NuevoPaciente() {
+export default function NuevoPaciente() {
   const navigate = useNavigate();
-
-  const [form, setForm] = useState({
-    nombre: "",
-    apellido: "",
-    dni: "",
-    edad: "",
-    altura: "",
-    peso: "",
-    cintura: "",
-    fecha_visita: "",
-    diagnostico: ""
-  });
+  const [form, setForm] = useState({});
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const guardarPaciente = async () => {
-    const res = await fetch(`${API_URL}/pacientes`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form)
-    });
-
-    if (res.ok) {
-      navigate("/");
-    }
+  const guardar = async () => {
+    await api.crearPaciente(form);
+    navigate("/");
   };
 
   return (
-    <div className="page">
-      <div className="card-form">
-        <h2>Nuevo Paciente</h2>
+    <div className="container">
+      <h1>Nuevo Paciente</h1>
 
-        <div className="form-grid">
-
-          <div className="form-group">
-            <label>Nombre</label>
-            <input name="nombre" onChange={handleChange} />
-          </div>
-
-          <div className="form-group">
-            <label>Apellido</label>
-            <input name="apellido" onChange={handleChange} />
-          </div>
-
-          <div className="form-group">
-            <label>DNI</label>
-            <input name="dni" onChange={handleChange} />
-          </div>
-
-          <div className="form-group">
-            <label>Edad</label>
-            <input name="edad" type="number" onChange={handleChange} />
-          </div>
-
-          <div className="form-group">
-            <label>Altura (m)</label>
-            <input name="altura" onChange={handleChange} />
-          </div>
-
-          <div className="form-group">
-            <label>Peso (kg)</label>
-            <input name="peso" onChange={handleChange} />
-          </div>
-
-          <div className="form-group">
-            <label>Cintura (cm)</label>
-            <input name="cintura" onChange={handleChange} />
-          </div>
-
-          <div className="form-group">
-            <label>Fecha de visita</label>
-            <input name="fecha_visita" type="date" onChange={handleChange} />
-          </div>
-
-          <div className="form-group full">
-            <label>Diagnóstico</label>
-            <textarea name="diagnostico" onChange={handleChange} />
-          </div>
-
-        </div>
-
-        <div className="form-actions">
-          <button className="btn-secondary" onClick={() => navigate("/")}>
-            Cancelar
-          </button>
-          <button className="btn-primary" onClick={guardarPaciente}>
-            Guardar Paciente
-          </button>
-        </div>
+      <div className="grid-form">
+        <input name="nombre" placeholder="Nombre" onChange={handleChange} />
+        <input name="apellido" placeholder="Apellido" onChange={handleChange} />
+        <input name="dni" placeholder="DNI" onChange={handleChange} />
+        <input name="edad" placeholder="Edad" onChange={handleChange} />
+        <input name="altura" placeholder="Altura (m)" onChange={handleChange} />
+        <input name="peso" placeholder="Peso (kg)" onChange={handleChange} />
+        <input name="cintura" placeholder="Cintura" onChange={handleChange} />
+        <input name="diagnostico" placeholder="Diagnóstico" onChange={handleChange} />
       </div>
+
+      <button className="btn-primary" onClick={guardar}>
+        Guardar
+      </button>
     </div>
   );
 }
-
-export default NuevoPaciente;
