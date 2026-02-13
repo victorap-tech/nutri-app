@@ -267,6 +267,27 @@ def crear_laboratorio(paciente_id):
     db.session.commit()
 
     return {"status": "laboratorio creado"}, 201
+
+@app.route("/pacientes/<int:paciente_id>/laboratorio", methods=["GET"])
+def listar_laboratorio(paciente_id):
+    labs = Laboratorio.query.filter_by(
+        paciente_id=paciente_id
+    ).order_by(Laboratorio.fecha.desc()).all()
+
+    return jsonify([
+        {
+            "id": l.id,
+            "fecha": l.fecha.isoformat(),
+            "glucosa": l.glucosa,
+            "colesterol_total": l.colesterol_total,
+            "hdl": l.hdl,
+            "ldl": l.ldl,
+            "trigliceridos": l.trigliceridos,
+            "tsh": l.tsh,
+            "observaciones": l.observaciones
+        }
+        for l in labs
+    ])
 # ---------------- ALIMENTOS ----------------
 
 @app.route("/alimentos", methods=["POST"])
