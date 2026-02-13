@@ -1,35 +1,39 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Header from "./components/Header";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
-import Home from "./pages/Home";
-import NuevoPaciente from "./pages/NuevoPaciente";
+import Pacientes from "./pages/Pacientes";
 import PacienteDetalle from "./pages/PacienteDetalle";
-import NuevaVisita from "./pages/NuevaVisita";
-import PacienteEvolucion from "./pages/PacienteEvolucion";
-import PacientePlan from "./pages/PacientePlan";
-import PacienteLaboratorio from "./pages/PacienteLaboratorio";
+import NuevoPaciente from "./pages/NuevoPaciente";
 import Alimentos from "./pages/Alimentos";
 
-export default function App() {
+function App() {
   return (
-    <BrowserRouter>
-      <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
+    <Router>
+      <div>
 
-        <Route path="/pacientes/nuevo" element={<NuevoPaciente />} />
-        <Route path="/pacientes/:id" element={<PacienteDetalle />} />
+        {/* HEADER */}
+        <div className="header">
+          Nutri App – Solo Nutricionista
+        </div>
 
-        <Route path="/pacientes/:id/visitas/nueva" element={<NuevaVisita />} />
-        <Route path="/pacientes/:id/evolucion" element={<PacienteEvolucion />} />
+        {/* NAV */}
+        <div className="nav">
+          <Link to="/">Pacientes</Link>
+          <Link to="/alimentos">Alimentos</Link>
+        </div>
 
-        <Route path="/pacientes/:id/plan" element={<PacientePlan />} />
-        <Route path="/pacientes/:id/laboratorio" element={<PacienteLaboratorio />} />
+        {/* CONTENIDO */}
+        <div className="container">
+          <Routes>
+            <Route path="/" element={<Pacientes />} />
+            <Route path="/pacientes/nuevo" element={<NuevoPaciente />} />
+            <Route path="/pacientes/:id" element={<PacienteDetalle />} />
+            <Route path="/alimentos" element={<Alimentos />} />
+          </Routes>
+        </div>
 
-        <Route path="/alimentos" element={<Alimentos />} />
-
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+      </div>
+    </Router>
   );
 }
+
+export default App;
