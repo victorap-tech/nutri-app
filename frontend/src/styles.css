@@ -86,3 +86,40 @@ input, select, textarea {
 .nav a:hover {
   text-decoration: underline;
 }
+.page-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.input-search {
+  width: 300px;
+  padding: 10px;
+  margin-top: 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.resultados {
+  margin-top: 20px;
+}
+
+.card-paciente {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.card-paciente:hover {
+  background: #f2f7ff;
+}
+
+.sin-resultados {
+  color: #888;
+  margin-top: 10px;
+}
