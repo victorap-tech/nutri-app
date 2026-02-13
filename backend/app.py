@@ -373,6 +373,19 @@ def eliminar_item_plan(item_id):
     db.session.delete(item)
     db.session.commit()
     return {"status": "item eliminado"}
+
+@app.route("/alimentos/<int:alimento_id>", methods=["PUT"])
+def actualizar_alimento(alimento_id):
+    data = request.json
+    alimento = Alimento.query.get_or_404(alimento_id)
+
+    alimento.nombre = data.get("nombre")
+    alimento.categoria = data.get("categoria")
+    alimento.calorias = data.get("calorias")
+
+    db.session.commit()
+
+    return {"status": "alimento actualizado"}
 # ---------------- PLANES ----------------
 
 @app.route("/pacientes/<int:paciente_id>/plan", methods=["POST"])
