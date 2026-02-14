@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL;
 
-function Home() {
+export default function Home() {
   const [pacientes, setPacientes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch(`${API}/pacientes`)
@@ -13,37 +14,47 @@ function Home() {
       .then(data => setPacientes(data));
   }, []);
 
-  const pacientesFiltrados = pacientes.filter(p =>
-    `${p.nombre} ${p.apellido}`.toLowerCase().includes(busqueda.toLowerCase())
+  const filtrados = pacientes.filter(p =>
+    `${p.nombre} ${p.apellido} ${p.dni}`
+      .toLowerCase()
+      .includes(busqueda.toLowerCase())
   );
 
   return (
-    <div>
-      <h2>Pacientes</h2>
+    <div className="container">
+      <div className="page-title">Pacientes</div>
 
-      <Link to="/nuevo">
-        <button className="btn-primary">+ Nuevo paciente</button>
-      </Link>
+      <div className="top-bar">
+        <input
+          className="search-input"
+          placeholder="Buscar paciente..."
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
+        />
 
-      <input
-        type="text"
-        placeholder="Buscar paciente..."
-        value={busqueda}
-        onChange={e => setBusqueda(e.target.value)}
-        className="input-search"
-      />
-
-      <div className="list">
-        {pacientesFiltrados.map(p => (
-          <Link key={p.id} to={`/pacientes/${p.id}`} className="card">
-            <strong>{p.nombre}, {p.apellido}</strong>
-            <div>DNI: {p.dni}</div>
-            <div>Edad: {p.edad} | Peso: {p.peso} kg</div>
-          </Link>
-        ))}
+        <button
+          className="btn-primary"
+          onClick={() => navigate("/nuevo")}
+        >
+          + Nuevo Paciente
+        </button>
       </div>
+
+      {filtrados.map(p => (
+        <div
+          key={p.id}
+          className="patient-card"
+          onClick={() => navigate(`/pacientes/${p.id}`)}
+        >
+          <div className="patient-name">
+            {p.apellido}, {p.nombre}
+          </div>
+
+          <div className="patient-info">
+            DNI: {p.dni} | Edad: {p.edad} | Peso: {p.peso} kg
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
-
-export default Home;
