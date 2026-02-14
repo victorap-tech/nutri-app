@@ -1,31 +1,32 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Header from "./components/Header";
+
 import Home from "./pages/Home";
+import NuevoPaciente from "./pages/NuevoPaciente";
 import PacienteDetalle from "./pages/PacienteDetalle";
+import PacienteFicha from "./pages/PacienteFicha";
+import PacienteEvolucion from "./pages/PacienteEvolucion";
+import PacientePlan from "./pages/PacientePlan";
+import PacienteLaboratorio from "./pages/PacienteLaboratorio";
 import Alimentos from "./pages/Alimentos";
 
-function App() {
+export default function App() {
   return (
-    <Router>
-      <div className="layout">
-        <header className="navbar">
-          <h1>Nutri App</h1>
-          <div className="subtitle">Solo Nutricionista</div>
-          <nav>
-            <a href="/">Pacientes</a>
-            <a href="/alimentos">Alimentos</a>
-          </nav>
-        </header>
+    <BrowserRouter>
+      <Header />
 
-        <main className="container">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/pacientes/:id" element={<PacienteDetalle />} />
-            <Route path="/alimentos" element={<Alimentos />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/nuevo" element={<NuevoPaciente />} />
+        <Route path="/alimentos" element={<Alimentos />} />
+
+        <Route path="/pacientes/:id" element={<PacienteDetalle />}>
+          <Route index element={<PacienteFicha />} />
+          <Route path="evolucion" element={<PacienteEvolucion />} />
+          <Route path="plan" element={<PacientePlan />} />
+          <Route path="laboratorio" element={<PacienteLaboratorio />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;
