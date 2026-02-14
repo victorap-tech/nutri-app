@@ -7,16 +7,26 @@ export default function PacientePlan() {
   const { id } = useParams();
 
   const [plan, setPlan] = useState(null);
+  const [planesHistorial, setPlanesHistorial] = useState([]);
   const [alimentos, setAlimentos] = useState([]);
   const [fechaPlan, setFechaPlan] = useState("");
-  const [comida, setComida] = useState("Desayuno");
-  const [alimentoId, setAlimentoId] = useState("");
-  const [cantidad, setCantidad] = useState("");
+  const [mostrarEditor, setMostrarEditor] = useState(false);
+
+  const [nuevoItem, setNuevoItem] = useState({
+    alimento_id: "",
+    comida: "",
+    cantidad: ""
+  });
 
   useEffect(() => {
     cargarPlan();
+    cargarPlanesHistorial();
     cargarAlimentos();
-  }, [id]);
+  }, []);
+
+  // ------------------------
+  // CARGAS
+  // ------------------------
 
   const cargarPlan = async () => {
     try {
@@ -27,9 +37,16 @@ export default function PacientePlan() {
       }
       const data = await res.json();
       setPlan(data);
+      setMostrarEditor(true);
     } catch {
       setPlan(null);
     }
+  };
+
+  const cargarPlanesHistorial = async () => {
+    const res = await fetch(`${API}/pacientes/${id}/planes`);
+    const data = await res.json();
+    setPlanesHistorial(data);
   };
 
   const cargarAlimentos = async () => {
@@ -38,157 +55,177 @@ export default function PacientePlan() {
     setAlimentos(data);
   };
 
+  // ------------------------
+  // CREAR PLAN
+  // ------------------------
+
   const crearPlan = async () => {
-    if (!fechaPlan) return alert("Seleccione fecha");
+    if (!fechaPlan) {
+      alert("Seleccionar fecha");
+      return;
+    }
 
     await fetch(`${API}/pacientes/${id}/plan`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fecha: fechaPlan }),
+      body: JSON.stringify({ fecha: fechaPlan })
     });
 
     setFechaPlan("");
-    cargarPlan();
+    setMostrarEditor(true);
+
+    await cargarPlan();
+    await cargarPlanesHistorial();
   };
 
+  // ------------------------
+  // AGREGAR ITEM
+  // ------------------------
+
   const agregarAlimento = async () => {
-    if (!alimentoId || !comida) return alert("Complete datos");
+    if (!nuevoItem.alimento_id || !nuevoItem.comida) {
+      alert("Completar alimento y comida");
+      return;
+    }
 
     await fetch(`${API}/planes/${plan.plan_id}/alimentos`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        alimento_id: alimentoId,
-        comida,
-        cantidad,
-      }),
+      body: JSON.stringify(nuevoItem)
     });
 
-    setCantidad("");
-    cargarPlan();
-  };
-
-  const eliminarItem = async (itemId) => {
-    await fetch(`${API}/plan_item/${itemId}`, {
-      method: "DELETE",
-    });
-    cargarPlan();
-  };
-
-  const copiarPlan = async () => {
-    const nuevaFecha = prompt("Ingrese fecha nuevo plan (YYYY-MM-DD)");
-    if (!nuevaFecha) return;
-
-    await fetch(`${API}/pacientes/${id}/plan/copiar`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fecha: nuevaFecha }),
+    setNuevoItem({
+      alimento_id: "",
+      comida: "",
+      cantidad: ""
     });
 
     cargarPlan();
   };
 
-  const exportarPDF = () => {
-    window.open(`${API}/pacientes/${id}/plan/pdf`, "_blank");
+  const eliminarItem = async (item_id) => {
+    await fetch(`${API}/plan_item/${item_id}`, {
+      method: "DELETE"
+    });
+
+    cargarPlan();
   };
 
-  const agruparPorComida = () => {
-    if (!plan?.alimentos) return {};
-
-    return plan.alimentos.reduce((acc, item) => {
-      if (!acc[item.comida]) acc[item.comida] = [];
-      acc[item.comida].push(item);
-      return acc;
-    }, {});
-  };
-
-  const agrupado = agruparPorComida();
+  // ------------------------
+  // UI
+  // ------------------------
 
   return (
     <div className="card">
       <h2>Plan Alimentario</h2>
 
+      {/* CREAR PLAN */}
       {!plan && (
-        <div className="crear-plan">
+        <div className="plan-create">
           <h3>Crear nuevo plan</h3>
-          <input
-            type="date"
-            value={fechaPlan}
-            onChange={(e) => setFechaPlan(e.target.value)}
-          />
-          <button onClick={crearPlan} className="btn-primary">
-            Crear Plan
-          </button>
+          <div className="row">
+            <input
+              type="date"
+              value={fechaPlan}
+              onChange={(e) => setFechaPlan(e.target.value)}
+            />
+            <button onClick={crearPlan} className="btn-primary">
+              Crear Plan
+            </button>
+          </div>
         </div>
       )}
 
+      {/* EDITOR DE PLAN */}
       {plan && (
         <>
           <div className="plan-header">
-            <span>Fecha: {plan.fecha}</span>
-            <div>
-              <button onClick={copiarPlan} className="btn-secondary">
-                Copiar plan anterior
-              </button>
-              <button onClick={exportarPDF} className="btn-success">
-                Exportar PDF
-              </button>
-            </div>
+            <strong>Fecha:</strong> {plan.fecha}
           </div>
 
-          <div className="agregar-alimento">
+          {/* AGREGAR ALIMENTO */}
+          <div className="plan-form">
             <select
-              value={comida}
-              onChange={(e) => setComida(e.target.value)}
+              value={nuevoItem.alimento_id}
+              onChange={(e) =>
+                setNuevoItem({
+                  ...nuevoItem,
+                  alimento_id: e.target.value
+                })
+              }
             >
-              <option>Desayuno</option>
-              <option>Almuerzo</option>
-              <option>Merienda</option>
-              <option>Cena</option>
-            </select>
-
-            <select
-              value={alimentoId}
-              onChange={(e) => setAlimentoId(e.target.value)}
-            >
-              <option value="">Seleccione alimento</option>
+              <option value="">Seleccionar alimento</option>
               {alimentos.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.nombre}
+                  {a.nombre} ({a.categoria})
                 </option>
               ))}
             </select>
 
             <input
-              type="text"
-              placeholder="Cantidad"
-              value={cantidad}
-              onChange={(e) => setCantidad(e.target.value)}
+              placeholder="Comida (Desayuno, Almuerzo...)"
+              value={nuevoItem.comida}
+              onChange={(e) =>
+                setNuevoItem({ ...nuevoItem, comida: e.target.value })
+              }
             />
 
-            <button onClick={agregarAlimento} className="btn-primary">
+            <input
+              placeholder="Cantidad"
+              value={nuevoItem.cantidad}
+              onChange={(e) =>
+                setNuevoItem({ ...nuevoItem, cantidad: e.target.value })
+              }
+            />
+
+            <button onClick={agregarAlimento} className="btn-success">
               Agregar
             </button>
           </div>
 
-          {Object.keys(agrupado).map((tipo) => (
-            <div key={tipo} className="bloque-comida">
-              <h3>{tipo}</h3>
-              {agrupado[tipo].map((item) => (
-                <div key={item.item_id} className="item-plan">
-                  <span>
-                    {item.nombre} {item.cantidad && `- ${item.cantidad}`}
-                  </span>
-                  <button
-                    onClick={() => eliminarItem(item.item_id)}
-                    className="btn-danger"
-                  >
-                    ✕
-                  </button>
+          {/* LISTA DE ITEMS */}
+          <div className="plan-items">
+            {plan.alimentos.length === 0 && (
+              <p className="muted">No hay alimentos cargados</p>
+            )}
+
+            {plan.alimentos.map((item) => (
+              <div key={item.item_id} className="plan-item">
+                <div>
+                  <strong>{item.comida}</strong> – {item.nombre}
+                  {item.cantidad && ` (${item.cantidad})`}
                 </div>
-              ))}
-            </div>
-          ))}
+
+                <button
+                  onClick={() => eliminarItem(item.item_id)}
+                  className="btn-danger"
+                >
+                  X
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* PDF */}
+          <div className="plan-actions">
+            <a
+              href={`${API}/pacientes/${id}/plan/pdf`}
+              target="_blank"
+              className="btn-secondary"
+            >
+              Exportar PDF
+            </a>
+          </div>
+
+          {/* HISTORIAL */}
+          <div className="plan-history">
+            <h4>Planes anteriores</h4>
+            {planesHistorial.map((p) => (
+              <div key={p.id} className="history-item">
+                {p.fecha}
+              </div>
+            ))}
+          </div>
         </>
       )}
     </div>
