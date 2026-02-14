@@ -1,27 +1,26 @@
-import { useNavigate } from "react-router-dom";
-import TabsPaciente from "../components/TabsPaciente";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+
+const API = import.meta.env.VITE_API_URL;
 
 export default function PacienteLaboratorio() {
-  const nav = useNavigate();
+  const { id } = useParams();
+  const [labs, setLabs] = useState([]);
+
+  useEffect(() => {
+    fetch(`${API}/pacientes/${id}/laboratorio`)
+      .then(res => res.json())
+      .then(data => setLabs(data));
+  }, [id]);
 
   return (
-    <div className="container">
-      <div className="row-between">
-        <h1>Laboratorio (básico)</h1>
-        <button className="btn" onClick={() => nav(-1)}>← Volver</button>
-      </div>
-
-      <TabsPaciente />
-
-      <div className="card">
-        <h3>Registro</h3>
-        <div className="alert info">
-          Este módulo lo dejamos listo en UI, pero necesita endpoints del backend para:
-          <b> crear / listar / editar / borrar</b> datos de laboratorio.
-          <br />
-          Si querés, te paso el modelo + endpoints (HbA1c, Glucemia, Colesterol, TG, etc.) en 1 bloque.
+    <div className="card">
+      <h3>Laboratorios</h3>
+      {labs.map(l => (
+        <div key={l.id}>
+          <p>{l.fecha} - Glucosa: {l.glucosa}</p>
         </div>
-      </div>
+      ))}
     </div>
   );
 }
