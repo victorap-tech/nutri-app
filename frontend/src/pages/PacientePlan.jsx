@@ -1,230 +1,244 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import TabsPaciente from "../components/TabsPaciente";
+import { apiFetch } from "../api";
 
-const API = import.meta.env.VITE_API_URL;
+const COMIDAS = ["Desayuno", "Almuerzo", "Merienda", "Cena", "Colación"];
 
 export default function PacientePlan() {
   const { id } = useParams();
 
+  const [loading, setLoading] = useState(true);
   const [plan, setPlan] = useState(null);
-  const [planesHistorial, setPlanesHistorial] = useState([]);
-  const [alimentos, setAlimentos] = useState([]);
-  const [fechaPlan, setFechaPlan] = useState("");
-  const [mostrarEditor, setMostrarEditor] = useState(false);
+  const [error, setError] = useState("");
 
-  const [nuevoItem, setNuevoItem] = useState({
-    alimento_id: "",
-    comida: "",
-    cantidad: ""
+  // crear plan
+  const [fechaPlan, setFechaPlan] = useState(() => {
+    const hoy = new Date();
+    return hoy.toISOString().slice(0, 10); // YYYY-MM-DD
   });
 
-  useEffect(() => {
-    cargarPlan();
-    cargarPlanesHistorial();
-    cargarAlimentos();
-  }, []);
+  // alimentos
+  const [alimentos, setAlimentos] = useState([]);
+  const [alimentoId, setAlimentoId] = useState("");
+  const [comida, setComida] = useState("Almuerzo");
+  const [cantidad, setCantidad] = useState("");
 
-  // ------------------------
-  // CARGAS
-  // ------------------------
+  const apiBase = useMemo(() => process.env.REACT_APP_API_URL || "", []);
 
-  const cargarPlan = async () => {
+  async function cargarTodo() {
+    setLoading(true);
+    setError("");
+
     try {
-      const res = await fetch(`${API}/pacientes/${id}/plan`);
-      if (!res.ok) {
+      // 1) intentar traer plan actual
+      const planData = await apiFetch(`/pacientes/${id}/plan`);
+      setPlan(planData);
+    } catch (e) {
+      // si no hay plan, lo dejamos null (no error)
+      if (e.status === 404) {
         setPlan(null);
-        return;
+      } else {
+        setError(`Error cargando plan: ${e.message}`);
+        setPlan(null);
       }
-      const data = await res.json();
-      setPlan(data);
-      setMostrarEditor(true);
-    } catch {
-      setPlan(null);
-    }
-  };
-
-  const cargarPlanesHistorial = async () => {
-    const res = await fetch(`${API}/pacientes/${id}/planes`);
-    const data = await res.json();
-    setPlanesHistorial(data);
-  };
-
-  const cargarAlimentos = async () => {
-    const res = await fetch(`${API}/alimentos`);
-    const data = await res.json();
-    setAlimentos(data);
-  };
-
-  // ------------------------
-  // CREAR PLAN
-  // ------------------------
-
-  const crearPlan = async () => {
-    if (!fechaPlan) {
-      alert("Seleccionar fecha");
-      return;
     }
 
-    await fetch(`${API}/pacientes/${id}/plan`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fecha: fechaPlan })
-    });
-
-    setFechaPlan("");
-    setMostrarEditor(true);
-
-    await cargarPlan();
-    await cargarPlanesHistorial();
-  };
-
-  // ------------------------
-  // AGREGAR ITEM
-  // ------------------------
-
-  const agregarAlimento = async () => {
-    if (!nuevoItem.alimento_id || !nuevoItem.comida) {
-      alert("Completar alimento y comida");
-      return;
+    try {
+      const alimentosData = await apiFetch(`/alimentos`);
+      setAlimentos(alimentosData);
+    } catch (e) {
+      setError((prev) => prev || `Error cargando alimentos: ${e.message}`);
     }
 
-    await fetch(`${API}/planes/${plan.plan_id}/alimentos`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nuevoItem)
-    });
+    setLoading(false);
+  }
 
-    setNuevoItem({
-      alimento_id: "",
-      comida: "",
-      cantidad: ""
-    });
+  useEffect(() => {
+    cargarTodo();
+    // eslint-disable-next-line
+  }, [id]);
 
-    cargarPlan();
-  };
+  async function handleCrearPlan() {
+    setError("");
+    try {
+      if (!fechaPlan) throw new Error("Fecha inválida");
+      const data = await apiFetch(`/pacientes/${id}/plan`, {
+        method: "POST",
+        body: JSON.stringify({ fecha: fechaPlan }),
+      });
 
-  const eliminarItem = async (item_id) => {
-    await fetch(`${API}/plan_item/${item_id}`, {
-      method: "DELETE"
-    });
+      // recargar plan actual
+      const planData = await apiFetch(`/pacientes/${id}/plan`);
+      setPlan(planData);
+    } catch (e) {
+      setError(`No se pudo crear el plan: ${e.message}`);
+    }
+  }
 
-    cargarPlan();
-  };
+  async function handleAgregarAlimento() {
+    setError("");
+    try {
+      if (!plan?.plan_id) throw new Error("No hay plan activo");
+      if (!alimentoId) throw new Error("Elegí un alimento");
+      if (!comida) throw new Error("Elegí comida");
 
-  // ------------------------
-  // UI
-  // ------------------------
+      await apiFetch(`/planes/${plan.plan_id}/alimentos`, {
+        method: "POST",
+        body: JSON.stringify({
+          alimento_id: Number(alimentoId),
+          comida,
+          cantidad: cantidad?.trim() || null,
+        }),
+      });
+
+      const planData = await apiFetch(`/pacientes/${id}/plan`);
+      setPlan(planData);
+      setCantidad("");
+    } catch (e) {
+      setError(`No se pudo agregar: ${e.message}`);
+    }
+  }
+
+  async function handleEliminarItem(itemId) {
+    setError("");
+    try {
+      await apiFetch(`/plan_item/${itemId}`, { method: "DELETE" });
+      const planData = await apiFetch(`/pacientes/${id}/plan`);
+      setPlan(planData);
+    } catch (e) {
+      setError(`No se pudo eliminar: ${e.message}`);
+    }
+  }
+
+  function pdfUrl() {
+    const base = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
+    return `${base}/pacientes/${id}/plan/pdf`;
+  }
+
+  if (loading) {
+    return (
+      <div className="page">
+        <TabsPaciente />
+        <p>Cargando...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="card">
+    <div className="page">
+      <TabsPaciente />
+
       <h2>Plan Alimentario</h2>
 
-      {/* CREAR PLAN */}
-      {!plan && (
-        <div className="plan-create">
+      {error ? <div className="alert-error">{error}</div> : null}
+
+      {!plan ? (
+        <div className="card">
           <h3>Crear nuevo plan</h3>
           <div className="row">
+            <label>Fecha</label>
             <input
               type="date"
               value={fechaPlan}
               onChange={(e) => setFechaPlan(e.target.value)}
             />
-            <button onClick={crearPlan} className="btn-primary">
-              Crear Plan
-            </button>
+            <button onClick={handleCrearPlan}>Crear plan</button>
           </div>
+          <p className="muted">
+            No hay plan activo. Creá uno para poder cargar alimentos y descargar PDF.
+          </p>
         </div>
-      )}
-
-      {/* EDITOR DE PLAN */}
-      {plan && (
+      ) : (
         <>
-          <div className="plan-header">
-            <strong>Fecha:</strong> {plan.fecha}
+          <div className="card">
+            <div className="row space">
+              <div>
+                <h3>Plan activo</h3>
+                <p className="muted">Fecha: {plan.fecha}</p>
+              </div>
+
+              <a className="btn" href={pdfUrl()} target="_blank" rel="noreferrer">
+                Descargar PDF
+              </a>
+            </div>
           </div>
 
-          {/* AGREGAR ALIMENTO */}
-          <div className="plan-form">
-            <select
-              value={nuevoItem.alimento_id}
-              onChange={(e) =>
-                setNuevoItem({
-                  ...nuevoItem,
-                  alimento_id: e.target.value
-                })
-              }
-            >
-              <option value="">Seleccionar alimento</option>
-              {alimentos.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.nombre} ({a.categoria})
-                </option>
-              ))}
-            </select>
+          <div className="card">
+            <h3>Agregar alimentos al plan</h3>
 
-            <input
-              placeholder="Comida (Desayuno, Almuerzo...)"
-              value={nuevoItem.comida}
-              onChange={(e) =>
-                setNuevoItem({ ...nuevoItem, comida: e.target.value })
-              }
-            />
+            <div className="grid">
+              <div>
+                <label>Comida</label>
+                <select value={comida} onChange={(e) => setComida(e.target.value)}>
+                  {COMIDAS.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <input
-              placeholder="Cantidad"
-              value={nuevoItem.cantidad}
-              onChange={(e) =>
-                setNuevoItem({ ...nuevoItem, cantidad: e.target.value })
-              }
-            />
+              <div>
+                <label>Alimento</label>
+                <select value={alimentoId} onChange={(e) => setAlimentoId(e.target.value)}>
+                  <option value="">-- Seleccionar --</option>
+                  {alimentos.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.nombre} ({a.categoria})
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <button onClick={agregarAlimento} className="btn-success">
-              Agregar
-            </button>
+              <div>
+                <label>Cantidad (opcional)</label>
+                <input
+                  value={cantidad}
+                  onChange={(e) => setCantidad(e.target.value)}
+                  placeholder="Ej: 1 taza / 200g / 2 unidades"
+                />
+              </div>
+
+              <div className="actions">
+                <button onClick={handleAgregarAlimento}>Agregar</button>
+              </div>
+            </div>
           </div>
 
-          {/* LISTA DE ITEMS */}
-          <div className="plan-items">
-            {plan.alimentos.length === 0 && (
-              <p className="muted">No hay alimentos cargados</p>
+          <div className="card">
+            <h3>Alimentos del plan</h3>
+
+            {(!plan.alimentos || plan.alimentos.length === 0) ? (
+              <p className="muted">Todavía no hay alimentos cargados en este plan.</p>
+            ) : (
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Comida</th>
+                    <th>Alimento</th>
+                    <th>Categoría</th>
+                    <th>Cantidad</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {plan.alimentos.map((it) => (
+                    <tr key={it.item_id}>
+                      <td>{it.comida}</td>
+                      <td>{it.nombre}</td>
+                      <td>{it.categoria}</td>
+                      <td>{it.cantidad || "-"}</td>
+                      <td style={{ textAlign: "right" }}>
+                        <button className="btn-danger" onClick={() => handleEliminarItem(it.item_id)}>
+                          Quitar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
-
-            {plan.alimentos.map((item) => (
-              <div key={item.item_id} className="plan-item">
-                <div>
-                  <strong>{item.comida}</strong> – {item.nombre}
-                  {item.cantidad && ` (${item.cantidad})`}
-                </div>
-
-                <button
-                  onClick={() => eliminarItem(item.item_id)}
-                  className="btn-danger"
-                >
-                  X
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* PDF */}
-          <div className="plan-actions">
-            <a
-              href={`${API}/pacientes/${id}/plan/pdf`}
-              target="_blank"
-              className="btn-secondary"
-            >
-              Exportar PDF
-            </a>
-          </div>
-
-          {/* HISTORIAL */}
-          <div className="plan-history">
-            <h4>Planes anteriores</h4>
-            {planesHistorial.map((p) => (
-              <div key={p.id} className="history-item">
-                {p.fecha}
-              </div>
-            ))}
           </div>
         </>
       )}
