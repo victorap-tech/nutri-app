@@ -4,24 +4,15 @@ body {
   background: #f5f7fa;
 }
 
-.navbar {
-  background: #1e3a8a;
+.header {
+  background: #1f3c88;
   color: white;
   padding: 15px;
 }
 
-.navbar h1 {
-  margin: 0;
-}
-
-.subtitle {
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-.navbar nav a {
-  margin-right: 15px;
+.header nav a {
   color: white;
+  margin-right: 15px;
   text-decoration: none;
 }
 
@@ -29,67 +20,35 @@ body {
   padding: 30px;
 }
 
-.btn-primary {
-  background: #2563eb;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-bottom: 15px;
-}
-
-.input-search {
-  display: block;
-  margin: 15px 0;
-  padding: 8px;
-  width: 250px;
-}
-
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
 .card {
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
-  text-decoration: none;
-  color: black;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.tabs {
-  margin-top: 20px;
-  display: flex;
-  gap: 10px;
-}
-
-.tabs button {
-  padding: 8px 16px;
-  border: none;
-  background: #e2e8f0;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.tabs button.active {
-  background: #1e3a8a;
-  color: white;
-}
-
-.card-section {
   background: white;
   padding: 20px;
   border-radius: 8px;
-  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
-.card-imc {
-  margin-top: 15px;
-  padding: 15px;
-  background: #f1f5f9;
-  border-radius: 8px;
+.tabs a {
+  margin-right: 10px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: #e0e0e0;
+  text-decoration: none;
+  color: black;
+}
+
+.tabs a.active {
+  background: #1f3c88;
+  color: white;
+}
+
+.imc-bar {
+  height: 20px;
+  background: #ddd;
+  border-radius: 10px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.imc-fill {
+  height: 100%;
 }
