@@ -1,8 +1,7 @@
-const API_BASE =
-  process.env.REACT_APP_API_URL?.replace(/\/$/, "") || ""; // si está vacío, usa mismo dominio
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-export async function apiFetch(path, options = {}) {
-  const url = `${API_BASE}${path}`;
+async function request(path, options = {}) {
+  const url = `${API_URL}${path}`;
 
   const res = await fetch(url, {
     headers: {
@@ -13,24 +12,35 @@ export async function apiFetch(path, options = {}) {
   });
 
   const contentType = res.headers.get("content-type") || "";
-  const isJson = contentType.includes("application/json");
-
-  let body = null;
-  if (isJson) {
-    body = await res.json().catch(() => null);
-  } else {
-    // si llega HTML por error, no rompemos
-    const text = await res.text().catch(() => "");
-    body = { error: "non_json_response", raw: text?.slice(0, 200) };
-  }
 
   if (!res.ok) {
-    const msg = body?.error || `HTTP_${res.status}`;
-    const err = new Error(msg);
-    err.status = res.status;
-    err.body = body;
-    throw err;
+    const text = await res.text();
+    console.error("API error:", text);
+    throw new Error(text);
   }
 
-  return body;
+  if (contentType.includes("application/json")) {
+    return res.json();
+  }
+
+  return res.text();
 }
+
+/* 👇 ESTO ES LO QUE FALTABA */
+export const api = {
+  get: (path) => request(path),
+  post: (path, body) =>
+    request(path, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  put: (path, body) =>
+    request(path, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+  delete: (path) =>
+    request(path, {
+      method: "DELETE",
+    }),
+};
