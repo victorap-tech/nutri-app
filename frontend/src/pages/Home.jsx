@@ -1,67 +1,49 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL;
 
-export default function Home() {
+function Home() {
+  const [pacientes, setPacientes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
-  const [resultados, setResultados] = useState([]);
-  const navigate = useNavigate();
 
-  const buscar = async (valor) => {
-    setBusqueda(valor);
+  useEffect(() => {
+    fetch(`${API}/pacientes`)
+      .then(res => res.json())
+      .then(data => setPacientes(data));
+  }, []);
 
-    if (!valor.trim()) {
-      setResultados([]);
-      return;
-    }
-
-    try {
-      const res = await fetch(`${API}/pacientes/buscar?q=${valor}`);
-      const data = await res.json();
-      setResultados(data);
-    } catch (err) {
-      console.error("Error buscando paciente:", err);
-    }
-  };
+  const pacientesFiltrados = pacientes.filter(p =>
+    `${p.nombre} ${p.apellido}`.toLowerCase().includes(busqueda.toLowerCase())
+  );
 
   return (
-    <div className="page-container">
+    <div>
       <h2>Pacientes</h2>
 
-      <button
-        className="btn-primary"
-        onClick={() => navigate("/nuevo")}
-      >
-        + Nuevo paciente
-      </button>
+      <Link to="/nuevo">
+        <button className="btn-primary">+ Nuevo paciente</button>
+      </Link>
 
       <input
         type="text"
         placeholder="Buscar paciente..."
         value={busqueda}
-        onChange={(e) => buscar(e.target.value)}
+        onChange={e => setBusqueda(e.target.value)}
         className="input-search"
       />
 
-      <div className="resultados">
-        {resultados.length === 0 && busqueda && (
-          <p className="sin-resultados">Sin resultados</p>
-        )}
-
-        {resultados.map((p) => (
-          <div
-            key={p.id}
-            className="card-paciente"
-            onClick={() => navigate(`/pacientes/${p.id}`)}
-          >
-            <strong>{p.nombre} {p.apellido}</strong>
-            <span>DNI: {p.dni}</span>
-            <span>Edad: {p.edad}</span>
-            <span>Peso: {p.peso} kg</span>
-          </div>
+      <div className="list">
+        {pacientesFiltrados.map(p => (
+          <Link key={p.id} to={`/pacientes/${p.id}`} className="card">
+            <strong>{p.nombre}, {p.apellido}</strong>
+            <div>DNI: {p.dni}</div>
+            <div>Edad: {p.edad} | Peso: {p.peso} kg</div>
+          </Link>
         ))}
       </div>
     </div>
   );
 }
+
+export default Home;
