@@ -25,7 +25,7 @@ export default function PacienteLaboratorio() {
     setLoading(true);
     setError("");
     try {
-      const data = await apiFetch(`/pacientes/${id}/laboratorio`);
+      const data = await api(`/pacientes/${id}/laboratorio`);
       setLabs(data);
     } catch (e) {
       setError(`Error cargando laboratorio: ${e.message}`);
@@ -46,7 +46,7 @@ export default function PacienteLaboratorio() {
   async function crear() {
     setError("");
     try {
-      await apiFetch(`/pacientes/${id}/laboratorio`, {
+      await api(`/pacientes/${id}/laboratorio`, {
         method: "POST",
         body: JSON.stringify(form),
       });
@@ -60,7 +60,7 @@ export default function PacienteLaboratorio() {
   async function eliminar(labId) {
     setError("");
     try {
-      await apiFetch(`/laboratorio/${labId}`, { method: "DELETE" });
+      await api(`/laboratorio/${labId}`, { method: "DELETE" });
       await cargar();
     } catch (e) {
       setError(`No se pudo eliminar: ${e.message}`);
