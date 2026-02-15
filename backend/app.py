@@ -315,20 +315,35 @@ def desactivar_alimento(alimento_id):
 def crear_plan(paciente_id):
     data = request.json or {}
 
+    fecha_str = data.get("fecha")
+
+    if not fecha_str:
+        return jsonify({"error": "fecha_requerida"}), 400
+
+    try:
+        fecha = date.fromisoformat(fecha_str)
+    except ValueError:
+        return jsonify({"error": "fecha_invalida"}), 400
+
     # Desactivar planes activos anteriores
-    planes_anteriores = PlanAlimentario.query.filter_by(paciente_id=paciente_id, activo=True).all()
+    planes_anteriores = PlanAlimentario.query.filter_by(
+        paciente_id=paciente_id,
+        activo=True
+    ).all()
+
     for p in planes_anteriores:
         p.activo = False
 
-    # Crear nuevo plan activo
+    # Crear nuevo plan
     plan = PlanAlimentario(
         paciente_id=paciente_id,
-        fecha=date.fromisoformat(data["fecha"]),
+        fecha=fecha,
         activo=True
     )
 
     db.session.add(plan)
     db.session.commit()
+
     return jsonify({"plan_id": plan.id}), 201
 
 @app.route("/pacientes/<int:paciente_id>/plan", methods=["GET"])
