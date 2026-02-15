@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import TabsPaciente from "../components/TabsPaciente";
-import { apiFetch } from "../api/api";
+import { api } from "../api/api";
 
 export default function PacienteLaboratorio() {
   const { id } = useParams();
