@@ -93,7 +93,6 @@ export default function PacienteLaboratorio() {
 
   return (
     <div className="page">
-      <TabsPaciente />
 
       <h2>Laboratorio</h2>
 
