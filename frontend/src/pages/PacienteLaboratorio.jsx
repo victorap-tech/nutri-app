@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import TabsPaciente from "../components/TabsPaciente";
 import { api } from "../api/api";
 
 export default function PacienteLaboratorio() {
@@ -20,11 +21,14 @@ export default function PacienteLaboratorio() {
     observaciones: "",
   });
 
+  // -------------------------------
+  // CARGAR HISTORIAL
+  // -------------------------------
   async function cargar() {
     setLoading(true);
     setError("");
     try {
-      const data = await api(`/pacientes/${id}/laboratorio`);
+      const data = await api.get(`/pacientes/${id}/laboratorio`);
       setLabs(data);
     } catch (e) {
       setError(`Error cargando laboratorio: ${e.message}`);
@@ -42,19 +46,16 @@ export default function PacienteLaboratorio() {
     setForm((prev) => ({ ...prev, [k]: v }));
   }
 
+  // -------------------------------
+  // CREAR REGISTRO
+  // -------------------------------
   async function crear() {
     setError("");
     try {
-      await api(`/pacientes/${id}/laboratorio`, {
-        method: "POST",
-        body: JSON.stringify(form),
-      });
-
+      await api.post(`/pacientes/${id}/laboratorio`, form);
       await cargar();
-
-      // limpiar formulario excepto fecha
-      setForm({
-        fecha: new Date().toISOString().slice(0, 10),
+      setForm((prev) => ({
+        ...prev,
         glucosa: "",
         colesterol_total: "",
         hdl: "",
@@ -62,18 +63,19 @@ export default function PacienteLaboratorio() {
         trigliceridos: "",
         tsh: "",
         observaciones: "",
-      });
+      }));
     } catch (e) {
       setError(`No se pudo guardar: ${e.message}`);
     }
   }
 
+  // -------------------------------
+  // ELIMINAR REGISTRO
+  // -------------------------------
   async function eliminar(labId) {
     setError("");
     try {
-      await api(`/laboratorio/${labId}`, {
-        method: "DELETE",
-      });
+      await api.delete(`/laboratorio/${labId}`);
       await cargar();
     } catch (e) {
       setError(`No se pudo eliminar: ${e.message}`);
@@ -83,6 +85,7 @@ export default function PacienteLaboratorio() {
   if (loading) {
     return (
       <div className="page">
+        <TabsPaciente />
         <p>Cargando...</p>
       </div>
     );
@@ -90,10 +93,13 @@ export default function PacienteLaboratorio() {
 
   return (
     <div className="page">
+      <TabsPaciente />
+
       <h2>Laboratorio</h2>
 
-      {error && <div className="alert-error">{error}</div>}
+      {error ? <div className="alert-error">{error}</div> : null}
 
+      {/* ================== NUEVO REGISTRO ================== */}
       <div className="card">
         <h3>Nuevo registro</h3>
 
@@ -175,6 +181,7 @@ export default function PacienteLaboratorio() {
         </div>
       </div>
 
+      {/* ================== HISTORIAL ================== */}
       <div className="card">
         <h3>Historial</h3>
 
