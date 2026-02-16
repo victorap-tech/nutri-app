@@ -358,8 +358,15 @@ def ver_plan_actual(paciente_id):
         alimentos_out = []
         for i in items:
             # Si por algún motivo el alimento no existe (borrado/desactivado), no reventamos
-            nombre = i.alimento.nombre if getattr(i, "alimento", None) else "(alimento eliminado)"
-            categoria = i.alimento.categoria if getattr(i, "alimento", None) else ""
+            alimento_obj = Alimento.query.get(i.alimento_id)
+
+            if alimento_obj:
+               nombre = alimento_obj.nombre
+               categoria = alimento_obj.categoria
+            else:
+               nombre = "(alimento eliminado)"
+               categoria = ""
+                
             alimentos_out.append({
                 "item_id": i.id,
                 "alimento_id": i.alimento_id,
