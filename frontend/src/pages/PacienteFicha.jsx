@@ -5,7 +5,6 @@ import IMCBar from "../components/IMCBar";
 const API = import.meta.env.VITE_API_URL;
 
 function Dato({ label, value, unit }) {
-  if (!value && value !== 0) return null;
   return (
     <div style={{
       background: "var(--surface-2)",
@@ -71,9 +70,7 @@ export default function PacienteFicha() {
         <Dato label="Edad"    value={paciente.edad}   unit="años" />
         <Dato label="Peso"    value={paciente.peso}   unit="kg" />
         <Dato label="Altura"  value={paciente.altura} unit="m" />
-        {paciente.cintura && (
-          <Dato label="Cintura" value={paciente.cintura} unit="cm" />
-        )}
+        <Dato label="Cintura" value={paciente.cintura} unit="cm" />
       </div>
 
       {/* IMC */}
