@@ -14,15 +14,12 @@ import os
 import traceback
 
 app = Flask(__name__)
-
-# CORS: si querés restringirlo, acá podés poner origins=["http://localhost:3000", "https://TU-FRONT..."]
 CORS(app)
 
 database_url = os.environ.get("DATABASE_URL")
 if not database_url:
     raise RuntimeError("DATABASE_URL no está definida")
 
-# Railway a veces da postgres://
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
 
@@ -34,18 +31,13 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-# ---------------- ERRORES JSON (clave para que NO explote React) ----------------
-
 @app.errorhandler(404)
 def not_found(e):
     return jsonify({"error": "not_found"}), 404
 
 @app.errorhandler(500)
 def internal_error(e):
-    # Devolvemos JSON (no HTML). Así React no intenta parsear "<!doctype...>"
     return jsonify({"error": "internal_server_error"}), 500
-
-# ---------------- UTILIDADES ----------------
 
 def to_float(valor):
     if valor is None or valor == "":
@@ -64,7 +56,6 @@ def calcular_imc(peso, altura):
         imc = peso / (altura * altura)
     except:
         return None, None
-
     imc = round(imc, 2)
     if imc < 18.5:
         rango = "Bajo peso"
@@ -76,6 +67,13 @@ def calcular_imc(peso, altura):
         rango = "Obesidad"
     return imc, rango
 
+def get_or_404(model, id):
+    obj = db.session.get(model, id)
+    if obj is None:
+        from flask import abort
+        abort(404)
+    return obj
+
 @app.route("/")
 def home():
     return jsonify({"status": "Nutri App OK"})
@@ -85,7 +83,6 @@ def home():
 @app.route("/pacientes", methods=["POST"])
 def crear_paciente():
     data = request.json or {}
-
     paciente = Paciente(
         nombre=data.get("nombre"),
         apellido=data.get("apellido"),
@@ -97,7 +94,6 @@ def crear_paciente():
         fecha_visita=date.fromisoformat(data["fecha_visita"]) if data.get("fecha_visita") else None,
         diagnostico=data.get("diagnostico")
     )
-
     db.session.add(paciente)
     db.session.commit()
     return jsonify({"id": paciente.id}), 201
@@ -123,7 +119,7 @@ def listar_pacientes():
 
 @app.route("/pacientes/<int:paciente_id>", methods=["GET"])
 def obtener_paciente(paciente_id):
-    p = Paciente.query.get_or_404(paciente_id)
+    p = get_or_404(Paciente, paciente_id)
     imc, rango = calcular_imc(p.peso, p.altura)
     return jsonify({
         "id": p.id,
@@ -143,8 +139,7 @@ def obtener_paciente(paciente_id):
 @app.route("/pacientes/<int:paciente_id>", methods=["PUT"])
 def actualizar_paciente(paciente_id):
     data = request.json or {}
-    paciente = Paciente.query.get_or_404(paciente_id)
-
+    paciente = get_or_404(Paciente, paciente_id)
     paciente.nombre = data.get("nombre")
     paciente.apellido = data.get("apellido")
     paciente.dni = data.get("dni")
@@ -154,13 +149,12 @@ def actualizar_paciente(paciente_id):
     paciente.cintura = to_float(data.get("cintura"))
     paciente.fecha_visita = date.fromisoformat(data["fecha_visita"]) if data.get("fecha_visita") else None
     paciente.diagnostico = data.get("diagnostico")
-
     db.session.commit()
     return jsonify({"status": "paciente actualizado"})
 
 @app.route("/pacientes/<int:paciente_id>", methods=["DELETE"])
 def eliminar_paciente(paciente_id):
-    paciente = Paciente.query.get_or_404(paciente_id)
+    paciente = get_or_404(Paciente, paciente_id)
     db.session.delete(paciente)
     db.session.commit()
     return jsonify({"status": "paciente eliminado"})
@@ -173,23 +167,20 @@ def buscar_paciente():
         (Paciente.apellido.ilike(f"%{q}%")) |
         (Paciente.dni.ilike(f"%{q}%"))
     ).all()
-
     return jsonify([
         {"id": p.id, "nombre": p.nombre, "apellido": p.apellido, "dni": p.dni, "edad": p.edad, "altura": p.altura, "peso": p.peso}
         for p in pacientes
     ])
 
-# ---------------- VISITAS (Evolución) ----------------
+# ---------------- VISITAS ----------------
 
 @app.route("/pacientes/<int:paciente_id>/visitas", methods=["POST"])
 def crear_visita(paciente_id):
     data = request.json or {}
-
     peso = to_float(data.get("peso"))
     altura = to_float(data.get("altura"))
     cintura = to_float(data.get("cintura"))
     imc, rango = calcular_imc(peso, altura)
-
     visita = Visita(
         paciente_id=paciente_id,
         fecha=date.fromisoformat(data["fecha"]),
@@ -198,10 +189,8 @@ def crear_visita(paciente_id):
         cintura=cintura,
         diagnostico=data.get("diagnostico")
     )
-
     db.session.add(visita)
     db.session.commit()
-
     return jsonify({"status": "visita creada", "imc": imc, "rango_imc": rango}), 201
 
 @app.route("/pacientes/<int:paciente_id>/visitas", methods=["GET"])
@@ -215,20 +204,18 @@ def listar_visitas(paciente_id):
 @app.route("/visitas/<int:visita_id>", methods=["PUT"])
 def actualizar_visita(visita_id):
     data = request.json or {}
-    visita = Visita.query.get_or_404(visita_id)
-
+    visita = get_or_404(Visita, visita_id)
     visita.fecha = date.fromisoformat(data["fecha"])
     visita.peso = to_float(data.get("peso"))
     visita.altura = to_float(data.get("altura"))
     visita.cintura = to_float(data.get("cintura"))
     visita.diagnostico = data.get("diagnostico")
-
     db.session.commit()
     return jsonify({"status": "visita actualizada"})
 
 @app.route("/visitas/<int:visita_id>", methods=["DELETE"])
 def eliminar_visita(visita_id):
-    visita = Visita.query.get_or_404(visita_id)
+    visita = get_or_404(Visita, visita_id)
     db.session.delete(visita)
     db.session.commit()
     return jsonify({"status": "visita eliminada"})
@@ -238,7 +225,6 @@ def eliminar_visita(visita_id):
 @app.route("/pacientes/<int:paciente_id>/laboratorio", methods=["POST"])
 def crear_laboratorio(paciente_id):
     data = request.json or {}
-
     lab = Laboratorio(
         paciente_id=paciente_id,
         fecha=date.fromisoformat(data["fecha"]),
@@ -250,7 +236,6 @@ def crear_laboratorio(paciente_id):
         tsh=data.get("tsh"),
         observaciones=data.get("observaciones")
     )
-
     db.session.add(lab)
     db.session.commit()
     return jsonify({"status": "laboratorio creado"}), 201
@@ -275,7 +260,7 @@ def listar_laboratorio(paciente_id):
 
 @app.route("/laboratorio/<int:lab_id>", methods=["DELETE"])
 def eliminar_laboratorio(lab_id):
-    lab = Laboratorio.query.get_or_404(lab_id)
+    lab = get_or_404(Laboratorio, lab_id)
     db.session.delete(lab)
     db.session.commit()
     return jsonify({"status": "laboratorio eliminado"})
@@ -304,7 +289,7 @@ def listar_alimentos():
 
 @app.route("/alimentos/<int:alimento_id>", methods=["DELETE"])
 def desactivar_alimento(alimento_id):
-    alimento = Alimento.query.get_or_404(alimento_id)
+    alimento = get_or_404(Alimento, alimento_id)
     alimento.activo = False
     db.session.commit()
     return jsonify({"status": "alimento desactivado"})
@@ -314,36 +299,21 @@ def desactivar_alimento(alimento_id):
 @app.route("/pacientes/<int:paciente_id>/plan", methods=["POST"])
 def crear_plan(paciente_id):
     data = request.json or {}
-
     fecha_str = data.get("fecha")
-
     if not fecha_str:
         return jsonify({"error": "fecha_requerida"}), 400
-
     try:
         fecha = date.fromisoformat(fecha_str)
     except ValueError:
         return jsonify({"error": "fecha_invalida"}), 400
 
-    # Desactivar planes activos anteriores
-    planes_anteriores = PlanAlimentario.query.filter_by(
-        paciente_id=paciente_id,
-        activo=True
-    ).all()
-
+    planes_anteriores = PlanAlimentario.query.filter_by(paciente_id=paciente_id, activo=True).all()
     for p in planes_anteriores:
         p.activo = False
 
-    # Crear nuevo plan
-    plan = PlanAlimentario(
-        paciente_id=paciente_id,
-        fecha=fecha,
-        activo=True
-    )
-
+    plan = PlanAlimentario(paciente_id=paciente_id, fecha=fecha, activo=True)
     db.session.add(plan)
     db.session.commit()
-
     return jsonify({"plan_id": plan.id}), 201
 
 @app.route("/pacientes/<int:paciente_id>/plan", methods=["GET"])
@@ -354,19 +324,15 @@ def ver_plan_actual(paciente_id):
             return jsonify({"error": "sin_plan"}), 404
 
         items = PlanAlimento.query.filter_by(plan_id=plan.id).all()
-
         alimentos_out = []
         for i in items:
-            # Si por algún motivo el alimento no existe (borrado/desactivado), no reventamos
-            alimento_obj = Alimento.query.get(i.alimento_id)
-
+            alimento_obj = db.session.get(Alimento, i.alimento_id)
             if alimento_obj:
-               nombre = alimento_obj.nombre
-               categoria = alimento_obj.categoria
+                nombre = alimento_obj.nombre
+                categoria = alimento_obj.categoria
             else:
-               nombre = "(alimento eliminado)"
-               categoria = ""
-                
+                nombre = "(alimento eliminado)"
+                categoria = ""
             alimentos_out.append({
                 "item_id": i.id,
                 "alimento_id": i.alimento_id,
@@ -393,35 +359,31 @@ def listar_planes(paciente_id):
 @app.route("/planes/<int:plan_id>/alimentos", methods=["POST"])
 def agregar_alimento_plan(plan_id):
     data = request.json or {}
-
     pa = PlanAlimento(
         plan_id=plan_id,
         alimento_id=data["alimento_id"],
         comida=data["comida"],
         cantidad=data.get("cantidad")
     )
-
     db.session.add(pa)
     db.session.commit()
     return jsonify({"status": "alimento agregado"}), 201
 
 @app.route("/plan_item/<int:item_id>", methods=["DELETE"])
 def eliminar_item_plan(item_id):
-    item = PlanAlimento.query.get_or_404(item_id)
+    item = get_or_404(PlanAlimento, item_id)
     db.session.delete(item)
     db.session.commit()
     return jsonify({"status": "item eliminado"})
 
 @app.route("/pacientes/<int:paciente_id>/plan/pdf", methods=["GET"])
 def plan_pdf(paciente_id):
-    paciente = Paciente.query.get_or_404(paciente_id)
+    paciente = get_or_404(Paciente, paciente_id)
     plan = PlanAlimentario.query.filter_by(paciente_id=paciente_id).order_by(PlanAlimentario.fecha.desc()).first()
     if not plan:
         return jsonify({"error": "sin_plan"}), 404
-
     items = PlanAlimento.query.filter_by(plan_id=plan.id).all()
     pdf = generar_pdf_plan(paciente, plan, items)
-
     return send_file(
         pdf,
         mimetype="application/pdf",
@@ -432,22 +394,13 @@ def plan_pdf(paciente_id):
 @app.route("/pacientes/<int:paciente_id>/plan/copiar", methods=["POST"])
 def copiar_plan_anterior(paciente_id):
     data = request.json or {}
-
     plan_anterior = PlanAlimentario.query.filter_by(paciente_id=paciente_id).order_by(PlanAlimentario.fecha.desc()).first()
     if not plan_anterior:
         return jsonify({"error": "no_hay_plan_anterior"}), 404
-
-    # CORRECCIÓN: parsear fecha (antes podía romper y dar 500)
     fecha_nueva = date.fromisoformat(data["fecha"])
-
-    nuevo_plan = PlanAlimentario(
-        paciente_id=paciente_id,
-        fecha=fecha_nueva,
-        activo=True
-    )
+    nuevo_plan = PlanAlimentario(paciente_id=paciente_id, fecha=fecha_nueva, activo=True)
     db.session.add(nuevo_plan)
     db.session.commit()
-
     items = PlanAlimento.query.filter_by(plan_id=plan_anterior.id).all()
     for item in items:
         copia = PlanAlimento(
@@ -457,7 +410,6 @@ def copiar_plan_anterior(paciente_id):
             cantidad=item.cantidad
         )
         db.session.add(copia)
-
     db.session.commit()
     return jsonify({"status": "plan copiado", "plan_id": nuevo_plan.id}), 201
 
