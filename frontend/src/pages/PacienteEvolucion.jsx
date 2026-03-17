@@ -264,36 +264,4 @@ export default function PacienteEvolucion() {
       </div>
     </div>
   );
-}    ),
-  },
-  {
-    to: (id) => `/pacientes/${id}/laboratorio`,
-    label: "Laboratorio",
-    end: false,
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v11m0 0l-3 7m3-7h6m0 0l3 7M9 14H5m10 0h4"/>
-      </svg>
-    ),
-  },
-];
-
-export default function TabsPaciente() {
-  const { id } = useParams();
-
-  return (
-    <div className="tabs">
-      {tabs.map((tab) => (
-        <NavLink
-          key={tab.label}
-          to={tab.to(id)}
-          end={tab.end}
-          className={({ isActive }) => "tab" + (isActive ? " active" : "")}
-        >
-          {tab.icon}
-          {tab.label}
-        </NavLink>
-      ))}
-    </div>
-  );
 }
