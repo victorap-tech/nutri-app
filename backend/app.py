@@ -352,11 +352,12 @@ def plan_pdf(paciente_id):
     if not plan:
         return jsonify({"error": "sin_plan"}), 404
     items = PlanAlimento.query.filter_by(plan_id=plan.id).all()
-    claves = ["prof_nombre", "prof_matricula", "prof_especialidad"]
+    claves = ["prof_nombre", "prof_matricula", "prof_especialidad", "prof_firma"]
     profesional = {}
     for clave in claves:
         conf = db.session.get(Configuracion, clave)
-        profesional[clave.replace("prof_", "")] = conf.valor if conf else ""
+        key = clave.replace("prof_", "")
+        profesional[key] = conf.valor if conf else ""
     pdf = generar_pdf_plan(paciente, plan, items, profesional=profesional)
     return send_file(pdf, mimetype="application/pdf", download_name=f"plan_{paciente.nombre}.pdf", as_attachment=True)
 
@@ -377,7 +378,7 @@ def copiar_plan_anterior(paciente_id):
 
 # ---------------- CONFIGURACION ----------------
 
-CLAVES_VALIDAS = ["prof_nombre", "prof_matricula", "prof_especialidad"]
+CLAVES_VALIDAS = ["prof_nombre", "prof_matricula", "prof_especialidad", "prof_firma"]
 
 @app.route("/configuracion", methods=["GET"])
 def get_configuracion():
