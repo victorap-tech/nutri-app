@@ -9,6 +9,7 @@ import PacienteEvolucion from "./pages/PacienteEvolucion";
 import PacientePlan from "./pages/PacientePlan";
 import PacienteLaboratorio from "./pages/PacienteLaboratorio";
 import Alimentos from "./pages/Alimentos";
+import Configuracion from "./pages/Configuracion";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/nuevo" element={<NuevoPaciente />} />
         <Route path="/alimentos" element={<Alimentos />} />
+        <Route path="/configuracion" element={<Configuracion />} />
 
         <Route path="/pacientes/:id" element={<PacienteDetalle />}>
           <Route index element={<PacienteFicha />} />
