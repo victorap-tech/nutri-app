@@ -10,6 +10,8 @@ from plan_alimento import PlanAlimento
 from pdf import generar_pdf_plan
 from visita import Visita
 from laboratorio import Laboratorio
+from composicion import ComposicionCorporal
+from composicion import ComposicionCorporal
 import os
 import traceback
 
@@ -114,7 +116,9 @@ def listar_pacientes():
             "peso": p.peso,
             "cintura": p.cintura,
             "fecha_visita": p.fecha_visita.isoformat() if p.fecha_visita else None,
-            "diagnostico": p.diagnostico
+            "diagnostico": p.diagnostico,
+            "presion_sistolica": p.presion_sistolica,
+            "presion_diastolica": p.presion_diastolica
         }
         for p in pacientes
     ])
@@ -134,6 +138,8 @@ def obtener_paciente(paciente_id):
         "cintura": p.cintura,
         "fecha_visita": p.fecha_visita.isoformat() if p.fecha_visita else None,
         "diagnostico": p.diagnostico,
+        "presion_sistolica": p.presion_sistolica,
+        "presion_diastolica": p.presion_diastolica,
         "imc": imc,
         "rango_imc": rango
     })
@@ -151,6 +157,8 @@ def actualizar_paciente(paciente_id):
     paciente.cintura = to_float(data.get("cintura"))
     paciente.fecha_visita = date.fromisoformat(data["fecha_visita"]) if data.get("fecha_visita") else None
     paciente.diagnostico = data.get("diagnostico")
+    paciente.presion_sistolica = data.get("presion_sistolica")
+    paciente.presion_diastolica = data.get("presion_diastolica")
     db.session.commit()
     return jsonify({"status": "paciente actualizado"})
 
@@ -236,6 +244,8 @@ def crear_laboratorio(paciente_id):
         ldl=data.get("ldl"),
         trigliceridos=data.get("trigliceridos"),
         tsh=data.get("tsh"),
+        presion_sistolica=data.get("presion_sistolica"),
+        presion_diastolica=data.get("presion_diastolica"),
         observaciones=data.get("observaciones")
     )
     db.session.add(lab)
@@ -255,6 +265,8 @@ def listar_laboratorio(paciente_id):
             "ldl": l.ldl,
             "trigliceridos": l.trigliceridos,
             "tsh": l.tsh,
+            "presion_sistolica": l.presion_sistolica,
+            "presion_diastolica": l.presion_diastolica,
             "observaciones": l.observaciones
         }
         for l in labs
@@ -424,6 +436,94 @@ def copiar_plan_anterior(paciente_id):
         db.session.add(copia)
     db.session.commit()
     return jsonify({"status": "plan copiado", "plan_id": nuevo_plan.id}), 201
+
+# ---------------- COMPOSICION CORPORAL ----------------
+
+@app.route("/pacientes/<int:paciente_id>/composicion", methods=["POST"])
+def crear_composicion(paciente_id):
+    data = request.json or {}
+    comp = ComposicionCorporal(
+        paciente_id=paciente_id,
+        fecha=date.fromisoformat(data["fecha"]),
+        grasa=to_float(data.get("grasa")),
+        agua=to_float(data.get("agua")),
+        musculo=to_float(data.get("musculo")),
+        osea=to_float(data.get("osea")),
+        peso=to_float(data.get("peso")),
+        observaciones=data.get("observaciones")
+    )
+    db.session.add(comp)
+    db.session.commit()
+    return jsonify({"id": comp.id}), 201
+
+@app.route("/pacientes/<int:paciente_id>/composicion", methods=["GET"])
+def listar_composicion(paciente_id):
+    registros = ComposicionCorporal.query.filter_by(paciente_id=paciente_id).order_by(ComposicionCorporal.fecha.desc()).all()
+    return jsonify([
+        {
+            "id": r.id,
+            "fecha": r.fecha.isoformat(),
+            "grasa": r.grasa,
+            "agua": r.agua,
+            "musculo": r.musculo,
+            "osea": r.osea,
+            "peso": r.peso,
+            "observaciones": r.observaciones
+        }
+        for r in registros
+    ])
+
+@app.route("/composicion/<int:comp_id>", methods=["DELETE"])
+def eliminar_composicion(comp_id):
+    comp = get_or_404(ComposicionCorporal, comp_id)
+    db.session.delete(comp)
+    db.session.commit()
+    return jsonify({"status": "eliminado"})
+
+
+# ---------------- COMPOSICION CORPORAL ----------------
+
+@app.route("/pacientes/<int:paciente_id>/composicion", methods=["POST"])
+def crear_composicion(paciente_id):
+    data = request.json or {}
+    comp = ComposicionCorporal(
+        paciente_id=paciente_id,
+        fecha=date.fromisoformat(data["fecha"]),
+        peso=to_float(data.get("peso")),
+        grasa=to_float(data.get("grasa")),
+        agua=to_float(data.get("agua")),
+        musculo=to_float(data.get("musculo")),
+        osea=to_float(data.get("osea")),
+        observaciones=data.get("observaciones")
+    )
+    db.session.add(comp)
+    db.session.commit()
+    return jsonify({"id": comp.id}), 201
+
+@app.route("/pacientes/<int:paciente_id>/composicion", methods=["GET"])
+def listar_composicion(paciente_id):
+    registros = ComposicionCorporal.query.filter_by(paciente_id=paciente_id).order_by(ComposicionCorporal.fecha.desc()).all()
+    return jsonify([
+        {
+            "id": r.id,
+            "fecha": r.fecha.isoformat(),
+            "peso": r.peso,
+            "grasa": r.grasa,
+            "agua": r.agua,
+            "musculo": r.musculo,
+            "osea": r.osea,
+            "observaciones": r.observaciones
+        }
+        for r in registros
+    ])
+
+@app.route("/composicion/<int:comp_id>", methods=["DELETE"])
+def eliminar_composicion(comp_id):
+    comp = get_or_404(ComposicionCorporal, comp_id)
+    db.session.delete(comp)
+    db.session.commit()
+    return jsonify({"status": "eliminado"})
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
