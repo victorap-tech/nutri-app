@@ -3,7 +3,6 @@ from flask_cors import CORS
 from datetime import date
 from database import db
 from models import Paciente
-from peso import Peso
 from alimento import Alimento
 from plan import PlanAlimentario
 from plan_alimento import PlanAlimento
@@ -11,7 +10,7 @@ from pdf import generar_pdf_plan
 from visita import Visita
 from laboratorio import Laboratorio
 from composicion import ComposicionCorporal
-from composicion import ComposicionCorporal
+from configuracion import Configuracion
 import os
 import traceback
 
@@ -59,14 +58,10 @@ def calcular_imc(peso, altura):
     except:
         return None, None
     imc = round(imc, 2)
-    if imc < 18.5:
-        rango = "Bajo peso"
-    elif imc < 25:
-        rango = "Normal"
-    elif imc < 30:
-        rango = "Sobrepeso"
-    else:
-        rango = "Obesidad"
+    if imc < 18.5:   rango = "Bajo peso"
+    elif imc < 25:   rango = "Normal"
+    elif imc < 30:   rango = "Sobrepeso"
+    else:            rango = "Obesidad"
     return imc, rango
 
 def get_or_404(model, id):
@@ -79,8 +74,6 @@ def get_or_404(model, id):
 @app.route("/")
 def home():
     return jsonify({"status": "Nutri App OK"})
-
-
 
 # ---------------- PACIENTES ----------------
 
@@ -96,7 +89,9 @@ def crear_paciente():
         peso=to_float(data.get("peso")),
         cintura=to_float(data.get("cintura")),
         fecha_visita=date.fromisoformat(data["fecha_visita"]) if data.get("fecha_visita") else None,
-        diagnostico=data.get("diagnostico")
+        diagnostico=data.get("diagnostico"),
+        presion_sistolica=data.get("presion_sistolica"),
+        presion_diastolica=data.get("presion_diastolica")
     )
     db.session.add(paciente)
     db.session.commit()
@@ -107,14 +102,9 @@ def listar_pacientes():
     pacientes = Paciente.query.all()
     return jsonify([
         {
-            "id": p.id,
-            "nombre": p.nombre,
-            "apellido": p.apellido,
-            "dni": p.dni,
-            "edad": p.edad,
-            "altura": p.altura,
-            "peso": p.peso,
-            "cintura": p.cintura,
+            "id": p.id, "nombre": p.nombre, "apellido": p.apellido,
+            "dni": p.dni, "edad": p.edad, "altura": p.altura,
+            "peso": p.peso, "cintura": p.cintura,
             "fecha_visita": p.fecha_visita.isoformat() if p.fecha_visita else None,
             "diagnostico": p.diagnostico,
             "presion_sistolica": p.presion_sistolica,
@@ -128,36 +118,30 @@ def obtener_paciente(paciente_id):
     p = get_or_404(Paciente, paciente_id)
     imc, rango = calcular_imc(p.peso, p.altura)
     return jsonify({
-        "id": p.id,
-        "nombre": p.nombre,
-        "apellido": p.apellido,
-        "dni": p.dni,
-        "edad": p.edad,
-        "altura": p.altura,
-        "peso": p.peso,
-        "cintura": p.cintura,
+        "id": p.id, "nombre": p.nombre, "apellido": p.apellido,
+        "dni": p.dni, "edad": p.edad, "altura": p.altura,
+        "peso": p.peso, "cintura": p.cintura,
         "fecha_visita": p.fecha_visita.isoformat() if p.fecha_visita else None,
         "diagnostico": p.diagnostico,
         "presion_sistolica": p.presion_sistolica,
         "presion_diastolica": p.presion_diastolica,
-        "imc": imc,
-        "rango_imc": rango
+        "imc": imc, "rango_imc": rango
     })
 
 @app.route("/pacientes/<int:paciente_id>", methods=["PUT"])
 def actualizar_paciente(paciente_id):
     data = request.json or {}
     paciente = get_or_404(Paciente, paciente_id)
-    paciente.nombre = data.get("nombre")
-    paciente.apellido = data.get("apellido")
-    paciente.dni = data.get("dni")
-    paciente.edad = data.get("edad")
-    paciente.altura = to_float(data.get("altura"))
-    paciente.peso = to_float(data.get("peso"))
-    paciente.cintura = to_float(data.get("cintura"))
+    paciente.nombre    = data.get("nombre")
+    paciente.apellido  = data.get("apellido")
+    paciente.dni       = data.get("dni")
+    paciente.edad      = data.get("edad")
+    paciente.altura    = to_float(data.get("altura"))
+    paciente.peso      = to_float(data.get("peso"))
+    paciente.cintura   = to_float(data.get("cintura"))
     paciente.fecha_visita = date.fromisoformat(data["fecha_visita"]) if data.get("fecha_visita") else None
-    paciente.diagnostico = data.get("diagnostico")
-    paciente.presion_sistolica = data.get("presion_sistolica")
+    paciente.diagnostico  = data.get("diagnostico")
+    paciente.presion_sistolica  = data.get("presion_sistolica")
     paciente.presion_diastolica = data.get("presion_diastolica")
     db.session.commit()
     return jsonify({"status": "paciente actualizado"})
@@ -187,16 +171,14 @@ def buscar_paciente():
 @app.route("/pacientes/<int:paciente_id>/visitas", methods=["POST"])
 def crear_visita(paciente_id):
     data = request.json or {}
-    peso = to_float(data.get("peso"))
+    peso   = to_float(data.get("peso"))
     altura = to_float(data.get("altura"))
     cintura = to_float(data.get("cintura"))
     imc, rango = calcular_imc(peso, altura)
     visita = Visita(
         paciente_id=paciente_id,
         fecha=date.fromisoformat(data["fecha"]),
-        peso=peso,
-        altura=altura,
-        cintura=cintura,
+        peso=peso, altura=altura, cintura=cintura,
         diagnostico=data.get("diagnostico")
     )
     db.session.add(visita)
@@ -215,10 +197,10 @@ def listar_visitas(paciente_id):
 def actualizar_visita(visita_id):
     data = request.json or {}
     visita = get_or_404(Visita, visita_id)
-    visita.fecha = date.fromisoformat(data["fecha"])
-    visita.peso = to_float(data.get("peso"))
-    visita.altura = to_float(data.get("altura"))
-    visita.cintura = to_float(data.get("cintura"))
+    visita.fecha       = date.fromisoformat(data["fecha"])
+    visita.peso        = to_float(data.get("peso"))
+    visita.altura      = to_float(data.get("altura"))
+    visita.cintura     = to_float(data.get("cintura"))
     visita.diagnostico = data.get("diagnostico")
     db.session.commit()
     return jsonify({"status": "visita actualizada"})
@@ -244,8 +226,6 @@ def crear_laboratorio(paciente_id):
         ldl=data.get("ldl"),
         trigliceridos=data.get("trigliceridos"),
         tsh=data.get("tsh"),
-        presion_sistolica=data.get("presion_sistolica"),
-        presion_diastolica=data.get("presion_diastolica"),
         observaciones=data.get("observaciones")
     )
     db.session.add(lab)
@@ -257,17 +237,10 @@ def listar_laboratorio(paciente_id):
     labs = Laboratorio.query.filter_by(paciente_id=paciente_id).order_by(Laboratorio.fecha.desc()).all()
     return jsonify([
         {
-            "id": l.id,
-            "fecha": l.fecha.isoformat(),
-            "glucosa": l.glucosa,
-            "colesterol_total": l.colesterol_total,
-            "hdl": l.hdl,
-            "ldl": l.ldl,
-            "trigliceridos": l.trigliceridos,
-            "tsh": l.tsh,
-            "presion_sistolica": l.presion_sistolica,
-            "presion_diastolica": l.presion_diastolica,
-            "observaciones": l.observaciones
+            "id": l.id, "fecha": l.fecha.isoformat(),
+            "glucosa": l.glucosa, "colesterol_total": l.colesterol_total,
+            "hdl": l.hdl, "ldl": l.ldl, "trigliceridos": l.trigliceridos,
+            "tsh": l.tsh, "observaciones": l.observaciones
         }
         for l in labs
     ])
@@ -284,11 +257,7 @@ def eliminar_laboratorio(lab_id):
 @app.route("/alimentos", methods=["POST"])
 def crear_alimento():
     data = request.json or {}
-    alimento = Alimento(
-        nombre=data["nombre"],
-        categoria=data["categoria"],
-        calorias=data.get("calorias")
-    )
+    alimento = Alimento(nombre=data["nombre"], categoria=data["categoria"], calorias=data.get("calorias"))
     db.session.add(alimento)
     db.session.commit()
     return jsonify({"id": alimento.id}), 201
@@ -296,18 +265,15 @@ def crear_alimento():
 @app.route("/alimentos", methods=["GET"])
 def listar_alimentos():
     alimentos = Alimento.query.filter_by(activo=True).all()
-    return jsonify([
-        {"id": a.id, "nombre": a.nombre, "categoria": a.categoria, "calorias": a.calorias}
-        for a in alimentos
-    ])
+    return jsonify([{"id": a.id, "nombre": a.nombre, "categoria": a.categoria, "calorias": a.calorias} for a in alimentos])
 
 @app.route("/alimentos/<int:alimento_id>", methods=["PUT"])
 def actualizar_alimento(alimento_id):
     data = request.json or {}
     alimento = get_or_404(Alimento, alimento_id)
-    alimento.nombre = data.get("nombre", alimento.nombre)
+    alimento.nombre    = data.get("nombre", alimento.nombre)
     alimento.categoria = data.get("categoria", alimento.categoria)
-    alimento.calorias = to_float(data.get("calorias"))
+    alimento.calorias  = to_float(data.get("calorias"))
     db.session.commit()
     return jsonify({"status": "alimento actualizado"})
 
@@ -330,11 +296,8 @@ def crear_plan(paciente_id):
         fecha = date.fromisoformat(fecha_str)
     except ValueError:
         return jsonify({"error": "fecha_invalida"}), 400
-
-    planes_anteriores = PlanAlimentario.query.filter_by(paciente_id=paciente_id, activo=True).all()
-    for p in planes_anteriores:
+    for p in PlanAlimentario.query.filter_by(paciente_id=paciente_id, activo=True).all():
         p.activo = False
-
     plan = PlanAlimentario(paciente_id=paciente_id, fecha=fecha, activo=True)
     db.session.add(plan)
     db.session.commit()
@@ -346,31 +309,18 @@ def ver_plan_actual(paciente_id):
         plan = PlanAlimentario.query.filter_by(paciente_id=paciente_id).order_by(PlanAlimentario.fecha.desc()).first()
         if not plan:
             return jsonify({"error": "sin_plan"}), 404
-
         items = PlanAlimento.query.filter_by(plan_id=plan.id).all()
         alimentos_out = []
         for i in items:
             alimento_obj = db.session.get(Alimento, i.alimento_id)
-            if alimento_obj:
-                nombre = alimento_obj.nombre
-                categoria = alimento_obj.categoria
-            else:
-                nombre = "(alimento eliminado)"
-                categoria = ""
+            nombre   = alimento_obj.nombre   if alimento_obj else "(eliminado)"
+            categoria = alimento_obj.categoria if alimento_obj else ""
             alimentos_out.append({
-                "item_id": i.id,
-                "alimento_id": i.alimento_id,
-                "nombre": nombre,
-                "categoria": categoria,
-                "comida": i.comida,
-                "cantidad": i.cantidad
+                "item_id": i.id, "alimento_id": i.alimento_id,
+                "nombre": nombre, "categoria": categoria,
+                "comida": i.comida, "cantidad": i.cantidad
             })
-
-        return jsonify({
-            "plan_id": plan.id,
-            "fecha": plan.fecha.isoformat(),
-            "alimentos": alimentos_out
-        })
+        return jsonify({"plan_id": plan.id, "fecha": plan.fecha.isoformat(), "alimentos": alimentos_out})
     except Exception:
         traceback.print_exc()
         return jsonify({"error": "internal_server_error"}), 500
@@ -383,12 +333,7 @@ def listar_planes(paciente_id):
 @app.route("/planes/<int:plan_id>/alimentos", methods=["POST"])
 def agregar_alimento_plan(plan_id):
     data = request.json or {}
-    pa = PlanAlimento(
-        plan_id=plan_id,
-        alimento_id=data["alimento_id"],
-        comida=data["comida"],
-        cantidad=data.get("cantidad")
-    )
+    pa = PlanAlimento(plan_id=plan_id, alimento_id=data["alimento_id"], comida=data["comida"], cantidad=data.get("cantidad"))
     db.session.add(pa)
     db.session.commit()
     return jsonify({"status": "alimento agregado"}), 201
@@ -407,13 +352,13 @@ def plan_pdf(paciente_id):
     if not plan:
         return jsonify({"error": "sin_plan"}), 404
     items = PlanAlimento.query.filter_by(plan_id=plan.id).all()
-    pdf = generar_pdf_plan(paciente, plan, items)
-    return send_file(
-        pdf,
-        mimetype="application/pdf",
-        download_name=f"plan_{paciente.nombre}.pdf",
-        as_attachment=True
-    )
+    claves = ["prof_nombre", "prof_matricula", "prof_especialidad"]
+    profesional = {}
+    for clave in claves:
+        conf = db.session.get(Configuracion, clave)
+        profesional[clave.replace("prof_", "")] = conf.valor if conf else ""
+    pdf = generar_pdf_plan(paciente, plan, items, profesional=profesional)
+    return send_file(pdf, mimetype="application/pdf", download_name=f"plan_{paciente.nombre}.pdf", as_attachment=True)
 
 @app.route("/pacientes/<int:paciente_id>/plan/copiar", methods=["POST"])
 def copiar_plan_anterior(paciente_id):
@@ -425,61 +370,35 @@ def copiar_plan_anterior(paciente_id):
     nuevo_plan = PlanAlimentario(paciente_id=paciente_id, fecha=fecha_nueva, activo=True)
     db.session.add(nuevo_plan)
     db.session.commit()
-    items = PlanAlimento.query.filter_by(plan_id=plan_anterior.id).all()
-    for item in items:
-        copia = PlanAlimento(
-            plan_id=nuevo_plan.id,
-            alimento_id=item.alimento_id,
-            comida=item.comida,
-            cantidad=item.cantidad
-        )
-        db.session.add(copia)
+    for item in PlanAlimento.query.filter_by(plan_id=plan_anterior.id).all():
+        db.session.add(PlanAlimento(plan_id=nuevo_plan.id, alimento_id=item.alimento_id, comida=item.comida, cantidad=item.cantidad))
     db.session.commit()
     return jsonify({"status": "plan copiado", "plan_id": nuevo_plan.id}), 201
 
-# ---------------- COMPOSICION CORPORAL ----------------
+# ---------------- CONFIGURACION ----------------
 
-@app.route("/pacientes/<int:paciente_id>/composicion", methods=["POST"])
-def crear_composicion(paciente_id):
+CLAVES_VALIDAS = ["prof_nombre", "prof_matricula", "prof_especialidad"]
+
+@app.route("/configuracion", methods=["GET"])
+def get_configuracion():
+    result = {}
+    for clave in CLAVES_VALIDAS:
+        conf = db.session.get(Configuracion, clave)
+        result[clave] = conf.valor if conf else ""
+    return jsonify(result)
+
+@app.route("/configuracion", methods=["PUT"])
+def set_configuracion():
     data = request.json or {}
-    comp = ComposicionCorporal(
-        paciente_id=paciente_id,
-        fecha=date.fromisoformat(data["fecha"]),
-        grasa=to_float(data.get("grasa")),
-        agua=to_float(data.get("agua")),
-        musculo=to_float(data.get("musculo")),
-        osea=to_float(data.get("osea")),
-        peso=to_float(data.get("peso")),
-        observaciones=data.get("observaciones")
-    )
-    db.session.add(comp)
+    for clave in CLAVES_VALIDAS:
+        if clave in data:
+            conf = db.session.get(Configuracion, clave)
+            if conf:
+                conf.valor = data[clave]
+            else:
+                db.session.add(Configuracion(clave=clave, valor=data[clave]))
     db.session.commit()
-    return jsonify({"id": comp.id}), 201
-
-@app.route("/pacientes/<int:paciente_id>/composicion", methods=["GET"])
-def listar_composicion(paciente_id):
-    registros = ComposicionCorporal.query.filter_by(paciente_id=paciente_id).order_by(ComposicionCorporal.fecha.desc()).all()
-    return jsonify([
-        {
-            "id": r.id,
-            "fecha": r.fecha.isoformat(),
-            "grasa": r.grasa,
-            "agua": r.agua,
-            "musculo": r.musculo,
-            "osea": r.osea,
-            "peso": r.peso,
-            "observaciones": r.observaciones
-        }
-        for r in registros
-    ])
-
-@app.route("/composicion/<int:comp_id>", methods=["DELETE"])
-def eliminar_composicion(comp_id):
-    comp = get_or_404(ComposicionCorporal, comp_id)
-    db.session.delete(comp)
-    db.session.commit()
-    return jsonify({"status": "eliminado"})
-
+    return jsonify({"status": "configuracion guardada"})
 
 # ---------------- COMPOSICION CORPORAL ----------------
 
@@ -504,16 +423,7 @@ def crear_composicion(paciente_id):
 def listar_composicion(paciente_id):
     registros = ComposicionCorporal.query.filter_by(paciente_id=paciente_id).order_by(ComposicionCorporal.fecha.desc()).all()
     return jsonify([
-        {
-            "id": r.id,
-            "fecha": r.fecha.isoformat(),
-            "peso": r.peso,
-            "grasa": r.grasa,
-            "agua": r.agua,
-            "musculo": r.musculo,
-            "osea": r.osea,
-            "observaciones": r.observaciones
-        }
+        {"id": r.id, "fecha": r.fecha.isoformat(), "peso": r.peso, "grasa": r.grasa, "agua": r.agua, "musculo": r.musculo, "osea": r.osea, "observaciones": r.observaciones}
         for r in registros
     ])
 
@@ -523,7 +433,6 @@ def eliminar_composicion(comp_id):
     db.session.delete(comp)
     db.session.commit()
     return jsonify({"status": "eliminado"})
-
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
