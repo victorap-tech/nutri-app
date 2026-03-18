@@ -58,7 +58,12 @@ export default function PacienteEvolucion() {
       .then(data => setVisitas(data));
   };
 
-  useEffect(() => { cargar(); }, [id]);
+  const [composicion, setComposicion] = useState([]);
+
+  const cargarComp = () =>
+    api.get(`/pacientes/${id}/composicion`).then(setComposicion).catch(() => {});
+
+  useEffect(() => { cargar(); cargarComp(); }, [id]);
 
   const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -253,6 +258,63 @@ export default function PacienteEvolucion() {
                             🗑️
                           </button>
                         </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* ── Historial composición corporal ── */}
+      <div className="card" style={{ marginTop: 20 }}>
+        <div className="card-title">Historial de composición corporal</div>
+        {composicion.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">⚖️</div>
+            <p>No hay registros de balanza aún. Cargalos desde la Ficha.</p>
+          </div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Peso</th>
+                  <th>% Grasa</th>
+                  <th>Δ Grasa</th>
+                  <th>% Agua</th>
+                  <th>% Músculo</th>
+                  <th>Δ Músculo</th>
+                  <th>% Ósea</th>
+                  <th>Obs.</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {composicion.map((r, i) => {
+                  const prev = composicion[i + 1];
+                  return (
+                    <tr key={r.id}>
+                      <td style={{ whiteSpace: "nowrap", fontWeight: 500 }}>
+                        {new Date(r.fecha + "T00:00:00").toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" })}
+                      </td>
+                      <td style={{ fontWeight: 600 }}>{r.peso ? `${r.peso} kg` : "—"}</td>
+                      <td>{r.grasa != null ? `${r.grasa}%` : "—"}</td>
+                      <td><Delta actual={r.grasa} anterior={prev?.grasa} unit="%" invertir={true} /></td>
+                      <td>{r.agua != null ? `${r.agua}%` : "—"}</td>
+                      <td>{r.musculo != null ? `${r.musculo}%` : "—"}</td>
+                      <td><Delta actual={r.musculo} anterior={prev?.musculo} unit="%" invertir={false} /></td>
+                      <td>{r.osea != null ? `${r.osea}%` : "—"}</td>
+                      <td style={{ fontSize: "0.8rem", color: "var(--text-muted)", maxWidth: 140 }}>{r.observaciones || "—"}</td>
+                      <td>
+                        <button className="btn-icon" onClick={async () => {
+                          if (!window.confirm("¿Eliminar?")) return;
+                          await api.delete(`/composicion/${r.id}`);
+                          cargarComp();
+                        }} title="Eliminar">🗑️</button>
                       </td>
                     </tr>
                   );
