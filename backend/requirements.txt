@@ -3,3 +3,5 @@ flask_sqlalchemy
 reportlab
 flask-cors
 psycopg2-binary
+gunicorn
+psycopg[binary]
