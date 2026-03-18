@@ -78,6 +78,30 @@ def get_or_404(model, id):
 def home():
     return jsonify({"status": "Nutri App OK"})
 
+@app.route("/migrate")
+def migrate():
+    try:
+        with db.engine.connect() as conn:
+            from sqlalchemy import text
+            conn.execute(text("ALTER TABLE plan_alimento ADD COLUMN IF NOT EXISTS cantidad VARCHAR(100)"))
+            conn.execute(text("ALTER TABLE visita ADD COLUMN IF NOT EXISTS cintura FLOAT"))
+            conn.commit()
+        return jsonify({"status": "migracion ok"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/migrate")
+def migrate():
+    try:
+        with db.engine.connect() as conn:
+            from sqlalchemy import text
+            conn.execute(text("ALTER TABLE plan_alimento ADD COLUMN IF NOT EXISTS cantidad VARCHAR(100)"))
+            conn.execute(text("ALTER TABLE visita ADD COLUMN IF NOT EXISTS cintura FLOAT"))
+            conn.commit()
+        return jsonify({"status": "migracion ok"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # ---------------- PACIENTES ----------------
 
 @app.route("/pacientes", methods=["POST"])
@@ -286,6 +310,16 @@ def listar_alimentos():
         {"id": a.id, "nombre": a.nombre, "categoria": a.categoria, "calorias": a.calorias}
         for a in alimentos
     ])
+
+@app.route("/alimentos/<int:alimento_id>", methods=["PUT"])
+def actualizar_alimento(alimento_id):
+    data = request.json or {}
+    alimento = get_or_404(Alimento, alimento_id)
+    alimento.nombre = data.get("nombre", alimento.nombre)
+    alimento.categoria = data.get("categoria", alimento.categoria)
+    alimento.calorias = to_float(data.get("calorias"))
+    db.session.commit()
+    return jsonify({"status": "alimento actualizado"})
 
 @app.route("/alimentos/<int:alimento_id>", methods=["DELETE"])
 def desactivar_alimento(alimento_id):
