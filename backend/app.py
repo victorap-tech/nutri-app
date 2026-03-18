@@ -78,29 +78,7 @@ def get_or_404(model, id):
 def home():
     return jsonify({"status": "Nutri App OK"})
 
-@app.route("/migrate")
-def migrate():
-    try:
-        with db.engine.connect() as conn:
-            from sqlalchemy import text
-            conn.execute(text("ALTER TABLE plan_alimento ADD COLUMN IF NOT EXISTS cantidad VARCHAR(100)"))
-            conn.execute(text("ALTER TABLE visita ADD COLUMN IF NOT EXISTS cintura FLOAT"))
-            conn.commit()
-        return jsonify({"status": "migracion ok"})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
-@app.route("/migrate")
-def migrate():
-    try:
-        with db.engine.connect() as conn:
-            from sqlalchemy import text
-            conn.execute(text("ALTER TABLE plan_alimento ADD COLUMN IF NOT EXISTS cantidad VARCHAR(100)"))
-            conn.execute(text("ALTER TABLE visita ADD COLUMN IF NOT EXISTS cintura FLOAT"))
-            conn.commit()
-        return jsonify({"status": "migracion ok"})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 # ---------------- PACIENTES ----------------
 
