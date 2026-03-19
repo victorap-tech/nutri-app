@@ -434,7 +434,3 @@ def eliminar_composicion(comp_id):
     db.session.delete(comp)
     db.session.commit()
     return jsonify({"status": "eliminado"})
-
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
