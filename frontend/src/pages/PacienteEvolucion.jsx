@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { api } from "../api/api";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -29,7 +30,6 @@ function Delta({ actual, anterior, unit = "", invertir = false }) {
   const diff = Math.round((actual - anterior) * 100) / 100;
   if (diff === 0) return <span style={{ color: "var(--text-muted)" }}>= {actual} {unit}</span>;
   const baja = diff < 0;
-  // invertir=true: bajar es bueno (ej. peso en sobrepeso)
   const esBueno = invertir ? baja : !baja;
   return (
     <span style={{ color: esBueno ? "#1a6630" : "#c0392b", fontWeight: 500 }}>
@@ -41,12 +41,10 @@ function Delta({ actual, anterior, unit = "", invertir = false }) {
 export default function PacienteEvolucion() {
   const { id } = useParams();
   const [visitas, setVisitas] = useState([]);
+  const [composicion, setComposicion] = useState([]);
   const [form, setForm] = useState({
     fecha: new Date().toISOString().split("T")[0],
-    peso: "",
-    altura: "",
-    cintura: "",
-    diagnostico: "",
+    peso: "", altura: "", cintura: "", diagnostico: "",
   });
   const [guardando, setGuardando] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -57,8 +55,6 @@ export default function PacienteEvolucion() {
       .then(r => r.json())
       .then(data => setVisitas(data));
   };
-
-  const [composicion, setComposicion] = useState([]);
 
   const cargarComp = () =>
     api.get(`/pacientes/${id}/composicion`).then(setComposicion).catch(() => {});
@@ -90,10 +86,8 @@ export default function PacienteEvolucion() {
   const handleEditar = (v) => {
     setEditId(v.id);
     setForm({
-      fecha: v.fecha,
-      peso: v.peso ?? "",
-      altura: v.altura ?? "",
-      cintura: v.cintura ?? "",
+      fecha: v.fecha, peso: v.peso ?? "",
+      altura: v.altura ?? "", cintura: v.cintura ?? "",
       diagnostico: v.diagnostico ?? "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -148,21 +142,14 @@ export default function PacienteEvolucion() {
           <textarea name="diagnostico" value={form.diagnostico} onChange={handleChange} placeholder="Notas de la visita..." rows={2} />
         </div>
 
-        {/* Preview IMC en tiempo real */}
         {form.peso && form.altura && (() => {
           const imc = calcularIMC(parseFloat(form.peso), parseFloat(form.altura));
           return imc ? (
             <div style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "6px 12px",
-              borderRadius: "99px",
-              background: "var(--surface-2)",
-              marginBottom: "16px",
-              fontSize: "0.8rem",
-              color: imcColor(imc),
-              fontWeight: 500,
+              display: "inline-flex", alignItems: "center", gap: "8px",
+              padding: "6px 12px", borderRadius: "99px",
+              background: "var(--surface-2)", marginBottom: "16px",
+              fontSize: "0.8rem", color: imcColor(imc), fontWeight: 500,
             }}>
               IMC calculado: <strong>{imc}</strong> — {rangoIMC(imc)}
             </div>
@@ -174,9 +161,7 @@ export default function PacienteEvolucion() {
             {guardando ? "Guardando..." : editId ? "Actualizar visita" : "+ Registrar visita"}
           </button>
           {editId && (
-            <button className="btn-secondary" onClick={cancelarEdicion}>
-              Cancelar
-            </button>
+            <button className="btn-secondary" onClick={cancelarEdicion}>Cancelar</button>
           )}
         </div>
       </div>
@@ -184,7 +169,6 @@ export default function PacienteEvolucion() {
       {/* ── Historial comparativo ── */}
       <div className="card">
         <div className="card-title">Historial de evolución</div>
-
         {visitas.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">📋</div>
@@ -195,68 +179,37 @@ export default function PacienteEvolucion() {
             <table>
               <thead>
                 <tr>
-                  <th>Fecha</th>
-                  <th>Peso</th>
-                  <th>Δ Peso</th>
-                  <th>Altura</th>
-                  <th>IMC</th>
-                  <th>Cintura</th>
-                  <th>Δ Cintura</th>
-                  <th>Observaciones</th>
-                  <th></th>
+                  <th>Fecha</th><th>Peso</th><th>Δ Peso</th>
+                  <th>Altura</th><th>IMC</th><th>Cintura</th>
+                  <th>Δ Cintura</th><th>Observaciones</th><th></th>
                 </tr>
               </thead>
               <tbody>
                 {visitas.map((v, i) => {
-                  const siguiente = visitas[i + 1]; // siguiente = más antigua
+                  const siguiente = visitas[i + 1];
                   const imc = calcularIMC(v.peso, v.altura);
                   return (
                     <tr key={v.id}>
                       <td style={{ whiteSpace: "nowrap", fontWeight: 500 }}>
-                        {new Date(v.fecha + "T00:00:00").toLocaleDateString("es-AR", {
-                          day: "2-digit", month: "short", year: "numeric"
-                        })}
+                        {new Date(v.fecha + "T00:00:00").toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" })}
                       </td>
                       <td style={{ fontWeight: 600 }}>{v.peso ? `${v.peso} kg` : "—"}</td>
-                      <td>
-                        {siguiente
-                          ? <Delta actual={v.peso} anterior={siguiente.peso} unit="kg" invertir={true} />
-                          : <span style={{ color: "var(--text-light)", fontSize: "0.75rem" }}>inicial</span>
-                        }
-                      </td>
+                      <td>{siguiente ? <Delta actual={v.peso} anterior={siguiente.peso} unit="kg" invertir={true} /> : <span style={{ color: "var(--text-light)", fontSize: "0.75rem" }}>inicial</span>}</td>
                       <td>{v.altura ? `${v.altura} m` : "—"}</td>
                       <td>
                         {imc ? (
-                          <span style={{
-                            fontWeight: 600,
-                            color: imcColor(imc),
-                            fontSize: "0.85rem",
-                          }}>
-                            {imc}
-                            <span style={{ fontSize: "0.7rem", fontWeight: 400, marginLeft: "4px", color: imcColor(imc) }}>
-                              {rangoIMC(imc)}
-                            </span>
+                          <span style={{ fontWeight: 600, color: imcColor(imc), fontSize: "0.85rem" }}>
+                            {imc} <span style={{ fontSize: "0.7rem", fontWeight: 400 }}>{rangoIMC(imc)}</span>
                           </span>
                         ) : "—"}
                       </td>
                       <td>{v.cintura ? `${v.cintura} cm` : "—"}</td>
-                      <td>
-                        {siguiente
-                          ? <Delta actual={v.cintura} anterior={siguiente.cintura} unit="cm" invertir={true} />
-                          : <span style={{ color: "var(--text-light)", fontSize: "0.75rem" }}>inicial</span>
-                        }
-                      </td>
-                      <td style={{ fontSize: "0.8rem", color: "var(--text-muted)", maxWidth: "160px" }}>
-                        {v.diagnostico || "—"}
-                      </td>
+                      <td>{siguiente ? <Delta actual={v.cintura} anterior={siguiente.cintura} unit="cm" invertir={true} /> : <span style={{ color: "var(--text-light)", fontSize: "0.75rem" }}>inicial</span>}</td>
+                      <td style={{ fontSize: "0.8rem", color: "var(--text-muted)", maxWidth: "160px" }}>{v.diagnostico || "—"}</td>
                       <td>
                         <div style={{ display: "flex", gap: "4px" }}>
-                          <button className="btn-icon" onClick={() => handleEditar(v)} title="Editar">
-                            ✏️
-                          </button>
-                          <button className="btn-icon" onClick={() => handleEliminar(v.id)} title="Eliminar">
-                            🗑️
-                          </button>
+                          <button className="btn-icon" onClick={() => handleEditar(v)} title="Editar">✏️</button>
+                          <button className="btn-icon" onClick={() => handleEliminar(v.id)} title="Eliminar">🗑️</button>
                         </div>
                       </td>
                     </tr>
@@ -281,16 +234,9 @@ export default function PacienteEvolucion() {
             <table>
               <thead>
                 <tr>
-                  <th>Fecha</th>
-                  <th>Peso</th>
-                  <th>% Grasa</th>
-                  <th>Δ Grasa</th>
-                  <th>% Agua</th>
-                  <th>% Músculo</th>
-                  <th>Δ Músculo</th>
-                  <th>% Ósea</th>
-                  <th>Obs.</th>
-                  <th></th>
+                  <th>Fecha</th><th>Peso</th><th>% Grasa</th><th>Δ Grasa</th>
+                  <th>% Agua</th><th>% Músculo</th><th>Δ Músculo</th><th>% Ósea</th>
+                  <th>Obs.</th><th></th>
                 </tr>
               </thead>
               <tbody>
