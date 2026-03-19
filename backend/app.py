@@ -15,7 +15,7 @@ import os
 import traceback
 
 app = Flask(__name__)
-CORS(app, origins=["https://nutri-app-production-dcae.up.railway.app"])
+CORS(app)
 
 database_url = os.environ.get("DATABASE_URL")
 if not database_url:
