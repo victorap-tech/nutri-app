@@ -318,7 +318,7 @@ def ver_plan_actual(paciente_id):
             alimentos_out.append({
                 "item_id": i.id, "alimento_id": i.alimento_id,
                 "nombre": nombre, "categoria": categoria,
-                "comida": i.comida, "cantidad": i.cantidad
+                "comida": i.comida, "cantidad": i.cantidad, "dia": i.dia or "Todos"
             })
         return jsonify({"plan_id": plan.id, "fecha": plan.fecha.isoformat(), "alimentos": alimentos_out})
     except Exception:
@@ -333,7 +333,7 @@ def listar_planes(paciente_id):
 @app.route("/planes/<int:plan_id>/alimentos", methods=["POST"])
 def agregar_alimento_plan(plan_id):
     data = request.json or {}
-    pa = PlanAlimento(plan_id=plan_id, alimento_id=data["alimento_id"], comida=data["comida"], cantidad=data.get("cantidad"))
+    pa = PlanAlimento(plan_id=plan_id, alimento_id=data["alimento_id"], comida=data["comida"], cantidad=data.get("cantidad"), dia=data.get("dia", "Todos"))
     db.session.add(pa)
     db.session.commit()
     return jsonify({"status": "alimento agregado"}), 201
