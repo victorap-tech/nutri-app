@@ -434,3 +434,22 @@ def eliminar_composicion(comp_id):
     db.session.delete(comp)
     db.session.commit()
     return jsonify({"status": "eliminado"})
+@app.route("/admin/reset", methods=["POST"])
+def reset_datos():
+    """Borra todos los datos clínicos, deja configuración y alimentos intactos"""
+    try:
+        ComposicionCorporal.query.delete()
+        Laboratorio.query.delete()
+        PlanAlimento.query.delete()
+        PlanAlimentario.query.delete()
+        Visita.query.delete()
+        Paciente.query.delete()
+        db.session.execute(db.text("ALTER SEQUENCE paciente_id_seq RESTART WITH 1"))
+        db.session.execute(db.text("ALTER SEQUENCE visita_id_seq RESTART WITH 1"))
+        db.session.execute(db.text("ALTER SEQUENCE plan_alimentario_id_seq RESTART WITH 1"))
+        db.session.commit()
+        return jsonify({"status": "reset ok"})
+    except Exception:
+        db.session.rollback()
+        traceback.print_exc()
+        return jsonify({"error": "no_se_pudo_resetear"}), 500
