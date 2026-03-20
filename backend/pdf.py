@@ -1,8 +1,12 @@
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
+from reportlab.platypus import Table, TableStyle
 from io import BytesIO
 import base64
+
+COMIDAS = ["Desayuno", "Almuerzo", "Merienda", "Cena", "Colación"]
+DIAS    = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 
 def generar_pdf_plan(paciente, plan, items, profesional=None):
     buffer = BytesIO()
@@ -18,14 +22,12 @@ def generar_pdf_plan(paciente, plan, items, profesional=None):
     # ── Header verde ────────────────────────────────────
     c.setFillColorRGB(0.18, 0.42, 0.31)
     c.rect(0, height - 70, width, 70, fill=True, stroke=False)
-
     c.setFillColor(colors.white)
     c.setFont("Helvetica-Bold", 18)
     c.drawString(40, height - 38, "Plan Alimentario")
     c.setFont("Helvetica", 10)
     fecha_str = plan.fecha.strftime('%d/%m/%Y') if hasattr(plan.fecha, 'strftime') else str(plan.fecha)
     c.drawString(40, height - 56, f"Fecha: {fecha_str}")
-
     if prof_nombre:
         c.setFont("Helvetica", 10)
         c.drawRightString(width - 40, height - 38, prof_nombre)
@@ -51,75 +53,97 @@ def generar_pdf_plan(paciente, plan, items, profesional=None):
     c.drawString(40, y - 28, "  ·  ".join(datos))
     y -= 60
 
-    # ── Alimentos por comida ─────────────────────────────
-    COMIDAS = ["Desayuno", "Almuerzo", "Merienda", "Cena", "Colación"]
-    por_comida = {}
+    # ── Construir tabla semanal ──────────────────────────
+    # Agrupar items por dia y comida
+    grilla = {}
     for item in items:
-        k = item.comida
-        if k not in por_comida:
-            por_comida[k] = []
+        dia = getattr(item, 'dia', None) or "Lunes"
+        comida = item.comida or "Desayuno"
         nombre = item.alimento.nombre if item.alimento else "(eliminado)"
-        por_comida[k].append((nombre, item.cantidad or ""))
+        cantidad = item.cantidad or ""
+        key = (dia, comida)
+        if key not in grilla:
+            grilla[key] = []
+        txt = nombre
+        if cantidad:
+            txt += f"\n({cantidad})"
+        grilla[key].append(txt)
 
-    orden = [x for x in COMIDAS if x in por_comida]
-    orden += [k for k in por_comida if k not in COMIDAS]
+    # Detectar qué días tienen datos
+    dias_con_datos = [d for d in DIAS if any((d, c) in grilla for c in COMIDAS)]
+    if not dias_con_datos:
+        dias_con_datos = DIAS[:5]  # lun-vie por defecto
 
-    for comida in orden:
-        alimentos_comida = por_comida[comida]
-        needed = 28 + len(alimentos_comida) * 18 + 10
-        if y - needed < 100:
+    # Tabla por grupos de días para que entre en la página
+    GRUPO = 4  # max días por tabla
+    for g_start in range(0, len(dias_con_datos), GRUPO):
+        grupo_dias = dias_con_datos[g_start:g_start + GRUPO]
+
+        col_w = (width - 100) / (len(grupo_dias) + 1)
+        header_row = [""] + grupo_dias
+        table_data = [header_row]
+
+        for comida in COMIDAS:
+            row = [comida]
+            tiene_algo = False
+            for dia in grupo_dias:
+                cell_items = grilla.get((dia, comida), [])
+                row.append("\n".join(cell_items) if cell_items else "")
+                if cell_items:
+                    tiene_algo = True
+            if tiene_algo:
+                table_data.append(row)
+
+        if len(table_data) <= 1:
+            continue
+
+        col_widths = [80] + [col_w] * len(grupo_dias)
+        t = Table(table_data, colWidths=col_widths)
+        t.setStyle(TableStyle([
+            ("BACKGROUND",   (0, 0), (-1, 0),  colors.HexColor("#2d6a4f")),
+            ("TEXTCOLOR",    (0, 0), (-1, 0),  colors.white),
+            ("FONTNAME",     (0, 0), (-1, 0),  "Helvetica-Bold"),
+            ("FONTSIZE",     (0, 0), (-1, 0),  8),
+            ("BACKGROUND",   (0, 1), (0, -1),  colors.HexColor("#e6f2eb")),
+            ("TEXTCOLOR",    (0, 1), (0, -1),  colors.HexColor("#2d6a4f")),
+            ("FONTNAME",     (0, 1), (0, -1),  "Helvetica-Bold"),
+            ("FONTSIZE",     (0, 1), (-1, -1), 7.5),
+            ("ALIGN",        (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN",       (0, 0), (-1, -1), "MIDDLE"),
+            ("GRID",         (0, 0), (-1, -1), 0.5, colors.HexColor("#ddd9d0")),
+            ("ROWBACKGROUNDS", (1, 1), (-1, -1), [colors.white, colors.HexColor("#f9f8f5")]),
+            ("TOPPADDING",   (0, 0), (-1, -1), 5),
+            ("BOTTOMPADDING",(0, 0), (-1, -1), 5),
+            ("LEFTPADDING",  (0, 0), (-1, -1), 4),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+            ("WORDWRAP",     (0, 0), (-1, -1), True),
+        ]))
+
+        t_w, t_h = t.wrapOn(c, width - 60, height)
+        if y - t_h < 80:
             c.showPage()
             y = height - 50
-
-        c.setFillColor(colors.HexColor("#e6f2eb"))
-        c.roundRect(30, y - 18, 140, 22, 4, fill=True, stroke=False)
-        c.setFillColor(colors.HexColor("#2d6a4f"))
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(40, y - 10, comida.upper())
-        y -= 28
-
-        for nombre, cantidad in alimentos_comida:
-            c.setFont("Helvetica", 10)
-            c.setFillColor(colors.HexColor("#1c1a16"))
-            c.drawString(50, y, f"• {nombre}")
-            if cantidad:
-                c.setFont("Helvetica", 9)
-                c.setFillColor(colors.HexColor("#7c7869"))
-                c.drawRightString(width - 40, y, cantidad)
-            y -= 18
-            if y < 100:
-                c.showPage()
-                y = height - 50
-        y -= 8
+        t.drawOn(c, 30, y - t_h)
+        y -= t_h + 20
 
     # ── Firma ────────────────────────────────────────────
     if prof_nombre or prof_firma_b64:
-        firma_y = 55
-
-        # Línea
+        if y < 100:
+            c.showPage()
+            y = height - 50
+        firma_y = max(y - 80, 55)
         c.setStrokeColor(colors.HexColor("#ddd9d0"))
         c.setLineWidth(0.5)
         c.line(width - 230, firma_y + 32, width - 40, firma_y + 32)
-
-        # Imagen de firma si existe
         if prof_firma_b64:
             try:
-                # Puede venir como "data:image/png;base64,XXX" o solo base64
-                if "," in prof_firma_b64:
-                    b64data = prof_firma_b64.split(",", 1)[1]
-                else:
-                    b64data = prof_firma_b64
+                b64data = prof_firma_b64.split(",", 1)[1] if "," in prof_firma_b64 else prof_firma_b64
                 img_bytes = base64.b64decode(b64data)
-                img_buffer = BytesIO(img_bytes)
                 from reportlab.lib.utils import ImageReader
-                img = ImageReader(img_buffer)
-                # Dibujar centrada sobre la línea
-                img_w, img_h = 160, 45
-                c.drawImage(img, width - 40 - img_w, firma_y + 34, width=img_w, height=img_h, preserveAspectRatio=True, mask='auto')
+                img = ImageReader(BytesIO(img_bytes))
+                c.drawImage(img, width - 200, firma_y + 34, width=160, height=45, preserveAspectRatio=True, mask='auto')
             except Exception:
-                pass  # Si falla la imagen, igual muestra el texto
-
-        # Texto firma
+                pass
         c.setFillColor(colors.HexColor("#1c1a16"))
         c.setFont("Helvetica-Bold", 10)
         c.drawCentredString(width - 135, firma_y + 18, prof_nombre)
