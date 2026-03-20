@@ -141,7 +141,7 @@ def generar_pdf_plan(paciente, plan, items, profesional=None):
                 img_bytes = base64.b64decode(b64data)
                 from reportlab.lib.utils import ImageReader
                 img = ImageReader(BytesIO(img_bytes))
-                c.drawImage(img, width - 200, firma_y + 34, width=160, height=45, preserveAspectRatio=True, mask='auto')
+                c.drawImage(img, width - 200, firma_y + 34, width=220, height=70, preserveAspectRatio=True, mask='auto')
             except Exception:
                 pass
         c.setFillColor(colors.HexColor("#1c1a16"))
