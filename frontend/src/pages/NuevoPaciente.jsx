@@ -36,7 +36,7 @@ export default function NuevoPaciente() {
         cintura: form.cintura ? Number(String(form.cintura).replace(",", ".")) : null,
       };
 
-      const r = await api.crearPaciente(payload);
+      const r = await api.post("/pacientes", payload);
       nav(`/pacientes/${r.id}`);
     } catch (e) {
       setErr(String(e.message || e));
