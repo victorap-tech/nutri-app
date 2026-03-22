@@ -10,24 +10,33 @@ import PacientePlan from "./pages/PacientePlan";
 import PacienteLaboratorio from "./pages/PacienteLaboratorio";
 import Alimentos from "./pages/Alimentos";
 import Configuracion from "./pages/Configuracion";
+import PlanPublico from "./pages/PlanPublico";
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Header />
-
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/nuevo" element={<NuevoPaciente />} />
-        <Route path="/alimentos" element={<Alimentos />} />
-        <Route path="/configuracion" element={<Configuracion />} />
+        {/* Ruta pública sin header */}
+        <Route path="/mi-plan" element={<PlanPublico />} />
 
-        <Route path="/pacientes/:id" element={<PacienteDetalle />}>
-          <Route index element={<PacienteFicha />} />
-          <Route path="evolucion" element={<PacienteEvolucion />} />
-          <Route path="plan" element={<PacientePlan />} />
-          <Route path="laboratorio" element={<PacienteLaboratorio />} />
-        </Route>
+        {/* Rutas privadas con header */}
+        <Route path="/*" element={
+          <>
+            <Header />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/nuevo" element={<NuevoPaciente />} />
+              <Route path="/alimentos" element={<Alimentos />} />
+              <Route path="/configuracion" element={<Configuracion />} />
+              <Route path="/pacientes/:id" element={<PacienteDetalle />}>
+                <Route index element={<PacienteFicha />} />
+                <Route path="evolucion" element={<PacienteEvolucion />} />
+                <Route path="plan" element={<PacientePlan />} />
+                <Route path="laboratorio" element={<PacienteLaboratorio />} />
+              </Route>
+            </Routes>
+          </>
+        } />
       </Routes>
     </BrowserRouter>
   );
