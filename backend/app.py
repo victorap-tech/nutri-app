@@ -453,3 +453,37 @@ def reset_datos():
         db.session.rollback()
         traceback.print_exc()
         return jsonify({"error": "no_se_pudo_resetear"}), 500
+
+# ---------------- PLAN PÚBLICO ----------------
+
+@app.route("/publico/plan/<dni>", methods=["GET"])
+def ver_plan_publico(dni):
+    paciente = Paciente.query.filter_by(dni=dni).first()
+    if not paciente:
+        return jsonify({"error": "paciente_no_encontrado"}), 404
+    plan = PlanAlimentario.query.filter_by(paciente_id=paciente.id).order_by(PlanAlimentario.fecha.desc()).first()
+    if not plan:
+        return jsonify({"error": "sin_plan"}), 404
+    items = PlanAlimento.query.filter_by(plan_id=plan.id).all()
+    alimentos_out = []
+    for i in items:
+        alimento_obj = db.session.get(Alimento, i.alimento_id)
+        nombre   = alimento_obj.nombre   if alimento_obj else "(eliminado)"
+        categoria = alimento_obj.categoria if alimento_obj else ""
+        alimentos_out.append({
+            "item_id": i.id, "alimento_id": i.alimento_id,
+            "nombre": nombre, "categoria": categoria,
+            "comida": i.comida, "cantidad": i.cantidad,
+            "dia": i.dia or "Lunes"
+        })
+    return jsonify({
+        "paciente": {"nombre": paciente.nombre, "apellido": paciente.apellido},
+        "plan_id": plan.id,
+        "fecha": plan.fecha.isoformat(),
+        "alimentos": alimentos_out
+    })
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
